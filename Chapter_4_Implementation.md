@@ -8,7 +8,7 @@ Before writing any code, we needed to select the right tools. This decision was 
 
 ### 4.1.1 Fuzzing Infrastructure
 
-For the fuzzing engine itself, we chose libFuzzer combined with Clang sanitizers. This was not a controversial choice. LibFuzzer is the industry standard for coverage-guided fuzzing in C and C++ projects. It integrates directly with the LLVM toolchain, which means compilation and fuzzing use the same infrastructure. Google uses libFuzzer for OSS-Fuzz, so the documentation and community support are excellent.
+For the fuzzing engine itself, we chose libFuzzer combined with Clang sanitizers. This was not a controversial choice. libFuzzer is the industry standard for coverage-guided fuzzing in C and C++ projects. It integrates directly with the LLVM toolchain, which means compilation and fuzzing use the same infrastructure. Google uses libFuzzer for OSS-Fuzz, so the documentation and community support are excellent.
 
 We compiled all targets with AddressSanitizer (ASan) and UndefinedBehaviorSanitizer (UBSan) enabled. ASan catches memory errors like buffer overflows, use-after-free, and memory leaks. UBSan catches undefined behavior like signed integer overflow and null pointer dereferences. These sanitizers add runtime overhead, but for security testing the overhead is acceptable. Finding bugs is more important than running fast.
 
@@ -76,7 +76,7 @@ cmake_minimum_required(VERSION 3.10...3.22)
 cmake_policy(VERSION 3.10...3.22)
 ```
 
-**[Figure 4.1: Toolchain architecture diagram showing the relationships between components. Local Development (Mac with Podman, Ollama) connects to Cifuzz Spark, which connects to either Local LLM or Azure OpenAI. Output flows to LibFuzzer with ASan/UBSan, producing Coverage Reports and Crash Reports.]**
+**[Figure 4.1: Toolchain architecture diagram showing the relationships between components. Local Development (Mac with Podman, Ollama) connects to Cifuzz Spark, which connects to either Local LLM or Azure OpenAI. Output flows to libFuzzer with ASan/UBSan, producing Coverage Reports and Crash Reports.]**
 
 ## 4.2 Phase 1: Local LLM Evaluation Setup
 
