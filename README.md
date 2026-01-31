@@ -1,1 +1,2 @@
-# temp_thesis
+# temporary
+thesis
