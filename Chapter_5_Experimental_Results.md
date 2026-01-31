@@ -1,6 +1,6 @@
 # 5 Experimental Results
 
-In this chapter, I present the experimental findings from our three-phase research conducted between May and September 2025. The goal was straightforward: determine whether LLMs can actually generate useful fuzz drivers, and if so, under what conditions. The results were mixed—some genuinely surprising, others confirming what we suspected from the start. These findings directly address the research questions defined in Chapter 1.
+In this chapter, we present the experimental findings from our three-phase research conducted between May and September 2025. The goal was straightforward: determine whether LLMs can actually generate useful fuzz drivers, and if so, under what conditions. The results were mixed—some genuinely surprising, others confirming what we suspected from the start. These findings directly address the research questions defined in Chapter 1.
 
 
 ## 5.1 Experimental Setup

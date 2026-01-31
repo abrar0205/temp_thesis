@@ -116,7 +116,7 @@ We needed consistent test targets to compare models fairly. We selected open-sou
 
 **Primary Target: yaml-cpp**
 
-Yaml-cpp is a YAML parsing library with approximately 35 source files and over 1000 API candidates that could potentially be fuzzed. We chose it as our primary benchmark because it has enough complexity to challenge the models while being well documented and actively maintained. The library also has existing fuzz targets in OSS-Fuzz, giving us a baseline for comparison.
+yaml-cpp is a YAML parsing library with approximately 35 source files and over 1000 API candidates that could potentially be fuzzed. We chose it as our primary benchmark because it has enough complexity to challenge the models while being well documented and actively maintained. The library also has existing fuzz targets in OSS-Fuzz, giving us a baseline for comparison.
 
 **Secondary Targets:**
 
