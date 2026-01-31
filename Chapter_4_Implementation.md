@@ -80,7 +80,7 @@ cmake_policy(VERSION 3.10...3.22)
 
 ## 4.2 Phase 1: Local LLM Evaluation Setup
 
-Phase 1 focused on understanding which models could actually generate useful fuzz drivers. We did not assume any model would work well. Literature suggested mixed results for LLM code generation, and fuzz drivers are a specialized task.
+Phase 1 focused on understanding which models could actually generate useful fuzz drivers. This phase directly addresses **RQ1** (Can LLMs generate compilable, executable fuzz drivers?) and **RQ2** (Does model size determine quality?). We did not assume any model would work well. Literature suggested mixed results for LLM code generation, and fuzz drivers are a specialized task.
 
 ### 4.2.1 Benchmarked Models
 
@@ -151,7 +151,7 @@ The full evaluation cycle for one model on one target took approximately 10-15 m
 
 ## 4.3 Phase 2: Model Optimization with LoRA Fine-Tuning
 
-After the initial evaluation showed promising results from Qwen 2.5-Coder models, we investigated whether fine-tuning could improve performance further. The goal was to see if a small model, specifically trained for fuzz driver generation, could match or exceed larger general-purpose models.
+After the initial evaluation showed promising results from Qwen 2.5-Coder models, we investigated whether fine-tuning could improve performance further. This phase addresses **RQ2** more directly: can smaller, fine-tuned models outperform larger general-purpose models? The goal was to see if a small model, specifically trained for fuzz driver generation, could match or exceed larger ones.
 
 ### 4.3.1 Training Data Preparation
 
@@ -182,8 +182,8 @@ The LoRA configuration we used:
 
 ```python
 # LoRA Configuration
-LORA_RANK = 16          # Controls adaptation complexity
-LORA_ALPHA = 32         # Scaling factor for learned adaptations
+LORA_RANK = 16          # Rank controls adaptation complexity
+LORA_ALPHA = 32         # Alpha is the scaling factor
 DROPOUT = 0.1           # Prevents overfitting
 TARGET_MODULES = ["q_proj", "v_proj", "k_proj", "o_proj"]
 DEVICE = "auto"         # Uses optimal hardware
@@ -219,7 +219,7 @@ We also tested the fine-tuned models on RapidJSON and pugixml to check generaliz
 
 ## 4.4 Phase 3: Enterprise CI/CD Integration
 
-This final phase moved from controlled experiments to real-world deployment. I should note that this is where things got complicated. Academic research happens in ideal conditions. Enterprise deployment happens in conditions dictated by security policies, legacy infrastructure, and organizational constraints.
+This final phase moved from controlled experiments to real-world deployment, addressing **RQ3**: Can LLM-assisted fuzz driver generation be integrated into secure enterprise CI/CD pipelines? I should note that this is where things got complicated. Academic research happens in ideal conditions. Enterprise deployment happens in conditions dictated by security policies, legacy infrastructure, and organizational constraints.
 
 ### 4.4.1 Architectural Challenges
 
