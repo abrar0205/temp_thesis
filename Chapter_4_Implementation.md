@@ -112,7 +112,7 @@ Installing these models required significant disk space. The larger models excee
 
 ### 4.2.2 Target Repositories
 
-We needed consistent test targets to compare models fairly. We selected open-source C++ libraries with varying complexity:
+We needed consistent test targets to compare models fairly. Our selection included open-source C++ libraries with varying complexity:
 
 **Primary Target: yaml-cpp**
 
@@ -155,9 +155,9 @@ After the initial evaluation showed promising results from Qwen 2.5-Coder models
 
 ### 4.3.1 Training Data Preparation
 
-Most important for fine-tuning is the training data. We needed high-quality examples of fuzz drivers paired with the source code they were testing.
+Most important for fine-tuning is the training data. High-quality examples of fuzz drivers paired with source code were essential.
 
-We extracted training examples from OSS-Fuzz. Google has fuzz-tested hundreds of open-source projects through OSS-Fuzz, and the fuzz drivers are publicly available. We focused on C and C++ drivers because those matched our target domain.
+To build our dataset, we extracted training examples from OSS-Fuzz. Google has fuzz-tested hundreds of open-source projects through OSS-Fuzz, and the fuzz drivers are publicly available. We focused on C and C++ drivers because those matched our target domain.
 
 Our extraction process involved four steps:
 

@@ -65,7 +65,7 @@ A clear pattern emerged: code-specialized models outperformed larger general-pur
 
 Based on Phase 1 results, we selected the Qwen 2.5-Coder 1.5B model for fine-tuning experiments. The goal was to determine whether a small, fine-tuned model could match larger models while using far fewer resources.
 
-We applied Low-Rank Adaptation (LoRA) fine-tuning using fuzz drivers from Google's OSS-Fuzz project as training data. We curated two datasets: a small one with 172 examples and an extended one with 709 examples. Each example consisted of a fuzz driver paired with its target API context, focused on security vulnerability patterns, fuzzing techniques, and automotive-specific code patterns.
+For this experiment, we applied Low-Rank Adaptation (LoRA) fine-tuning using fuzz drivers from Google's OSS-Fuzz project as training data. Two datasets were curated: a small one with 172 examples and an extended one with 709 examples. Each example consisted of a fuzz driver paired with its target API context, focused on security vulnerability patterns, fuzzing techniques, and automotive-specific code patterns.
 
 Our fine-tuning configuration:
 - LoRA Rank: 16
