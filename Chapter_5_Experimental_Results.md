@@ -100,9 +100,9 @@ The AI-enhanced fuzzing pipeline added 60-120 seconds per target: context extrac
 
 The experiments produced several key findings.
 
-First, model specialization matters more than size. Code-specialized models like Qwen Coder outperformed larger general-purpose models by wide margins. The 7B Qwen Coder exceeded the 46.7B Mixtral on every metric.
+First, model specialization matters more than size. Code-specialized models like Qwen 2.5-Coder outperformed larger general-purpose models by wide margins. The 7B Qwen 2.5-Coder exceeded the 46.7B Mixtral on every metric.
 
-Second, fine-tuning enables efficient deployment. The fine-tuned 1.5B model achieved 91% of the 32B model's coverage while generating 9 times faster and using 10 times less memory.
+Second, fine-tuning enables efficient deployment. The fine-tuned 1.5B model achieved 41% coverage compared to 45% for the 32B model while generating 9 times faster and using 10 times less memory.
 
 Third, parser libraries are ideal targets. Libraries with clear input formats showed the best results. Mathematical or highly stateful libraries remain challenging.
 
