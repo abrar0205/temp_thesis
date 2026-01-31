@@ -20,7 +20,7 @@ The choice of cifuzz was deliberate. We evaluated several alternatives including
 
 We needed to run models locally for several reasons. First, we wanted to evaluate many different models, and running them through paid APIs would have been expensive. Second, some models are open-source and only available for local deployment. Third, for the enterprise integration phase, we needed to understand how local deployment might work as an alternative to cloud APIs.
 
-We selected Ollama as our primary local inference server. Ollama simplifies model management significantly. Installing a new model is one command: `ollama pull qwen2.5-coder:32b`. The server exposes an OpenAI-compatible API, which meant cifuzz spark worked without modification. Ollama handled quantized models well, which let us run larger models on the available hardware.
+We selected Ollama as our primary local inference server. Ollama simplifies model management. Installing a new model is one command: `ollama pull qwen2.5-coder:32b`. The server exposes an OpenAI-compatible API, which meant cifuzz spark worked without modification. Ollama handled quantized models well, which let us run larger models on the available hardware.
 
 For models not available through Ollama, we used llama.cpp directly. This required more manual configuration but gave us flexibility. Some models from Hugging Face came as split GGUF files that needed merging before use. We handled this with the following command:
 
@@ -40,11 +40,11 @@ export CIFUZZ_LLM_API_TOKEN="<api-key>"
 export CIFUZZ_LLM_MAX_TOKENS=40000
 ```
 
-The token limit of 40000 was necessary because fuzz driver generation requires substantial context. The prompt includes header files, example code, and detailed instructions. Smaller token limits caused truncation and worse results.
+A token limit of 40000 was necessary because fuzz driver generation requires substantial context. Prompts include header files, example code, and detailed instructions. Smaller token limits caused truncation and worse results.
 
 ### 4.1.3 Development Environment
 
-The local development happened on a MacBook Pro with an M1 Pro chip. This created some challenges. Docker Desktop had performance issues on Apple Silicon, so we switched to Podman. Podman provided better Linux container compatibility, which mattered because the enterprise CI/CD runners used Linux.
+Local development happened on a MacBook Pro with an M1 Pro chip. This created some challenges. Docker Desktop had performance issues on Apple Silicon, so we switched to Podman. Podman provided better Linux container compatibility, which mattered because the enterprise CI/CD runners used Linux.
 
 ```bash
 brew install podman
@@ -56,7 +56,7 @@ I should note that transitioning from Docker to Podman was not entirely smooth. 
 
 For the enterprise environment, we used CARIAD's internal GitHub Enterprise instance with self-hosted runners. These runners used Buildah instead of Docker for container operations. Buildah is daemonless, which fits better with security policies that restrict long-running processes.
 
-The build toolchain used CMake for project configuration and Clang for compilation. We required CMake version 3.5 or higher because cifuzz integration depends on features from that version. The CMake configuration for enabling fuzzing was straightforward:
+Our build toolchain used CMake for project configuration and Clang for compilation. We required CMake version 3.5 or higher because cifuzz integration depends on features from that version. CMake configuration for enabling fuzzing was straightforward:
 
 ```cmake
 cmake_minimum_required(VERSION 3.5)
@@ -80,7 +80,7 @@ cmake_policy(VERSION 3.10...3.22)
 
 ## 4.2 Phase 1: Local LLM Evaluation Setup
 
-The first phase focused on understanding which models could actually generate useful fuzz drivers. We did not assume any model would work well. The literature suggested mixed results for LLM code generation, and fuzz drivers are a specialized task.
+Phase 1 focused on understanding which models could actually generate useful fuzz drivers. We did not assume any model would work well. Literature suggested mixed results for LLM code generation, and fuzz drivers are a specialized task.
 
 ### 4.2.1 Benchmarked Models
 
@@ -106,7 +106,7 @@ We evaluated 14 models spanning a wide range of sizes and architectures. The sel
 - Gemma 3 4B
 - Phi 4 3.8B
 
-The code-specialized models like Qwen Coder and DeepSeek Coder were trained specifically on programming tasks. General-purpose models like Mixtral were included to test whether raw scale could compensate for lack of specialization. We wanted to know: does a 46B general model outperform a 7B code-specialized model? The results, discussed in Chapter 5, were surprising: general-purpose models like Mixtral (46.7B) and CodeLlama (34B) achieved 0% code coverage, while the smaller specialized Qwen 2.5-Coder (32B) consistently achieved 45% line coverage.
+Code-specialized models like Qwen Coder and DeepSeek Coder were trained specifically on programming tasks. General-purpose models like Mixtral were included to test whether raw scale could compensate for lack of specialization. We wanted to know: does a 46B general model outperform a 7B code-specialized model? Results, discussed in Chapter 5, were surprising: general-purpose models like Mixtral (46.7B) and CodeLlama (34B) achieved 0% code coverage, while the smaller specialized Qwen 2.5-Coder (32B) consistently achieved 45% line coverage.
 
 Installing these models required significant disk space. The larger models exceeded 20GB each in their quantized forms. We used 4-bit and 5-bit quantization to fit models into available VRAM while maintaining reasonable output quality.
 
@@ -132,7 +132,7 @@ We also tested on several CARIAD internal libraries, though we cannot report tho
 
 ### 4.2.3 Evaluation Environment
 
-The hardware for local evaluation was a workstation with sufficient GPU memory for running 32B parameter models with 4-bit quantization. Larger models like Mixtral 46.7B required offloading to system RAM, which slowed inference significantly.
+Hardware for local evaluation was a workstation with sufficient GPU memory for running 32B parameter models with 4-bit quantization. Larger models like Mixtral 46.7B required offloading to system RAM, which slowed inference.
 
 The evaluation process for each model followed these steps:
 
@@ -155,7 +155,7 @@ After the initial evaluation showed promising results from Qwen 2.5-Coder models
 
 ### 4.3.1 Training Data Preparation
 
-The most important part of fine-tuning is the training data. We needed high-quality examples of fuzz drivers paired with the source code they were testing.
+Most important for fine-tuning is the training data. We needed high-quality examples of fuzz drivers paired with the source code they were testing.
 
 We extracted training examples from OSS-Fuzz. Google has fuzz-tested hundreds of open-source projects through OSS-Fuzz, and the fuzz drivers are publicly available. We focused on C and C++ drivers because those matched our target domain.
 
@@ -176,7 +176,7 @@ Quality control was important. We manually reviewed a sample of the extracted dr
 
 ### 4.3.2 LoRA Configuration and Training
 
-We used Low-Rank Adaptation (LoRA) rather than full fine-tuning. Full fine-tuning updates all model weights, which requires enormous compute resources. LoRA adds small trainable matrices alongside the frozen base model. This reduces memory requirements dramatically while achieving similar results on specialized tasks.
+We used Low-Rank Adaptation (LoRA) rather than full fine-tuning. Full fine-tuning updates all model weights, which requires enormous compute resources. LoRA adds small trainable matrices alongside the frozen base model. This reduces memory requirements by a large margin while achieving similar results on specialized tasks.
 
 The LoRA configuration we used:
 
@@ -186,7 +186,7 @@ LORA_RANK = 16          # Controls adaptation complexity
 LORA_ALPHA = 32         # Scaling factor for learned adaptations
 DROPOUT = 0.1           # Prevents overfitting
 TARGET_MODULES = ["q_proj", "v_proj", "k_proj", "o_proj"]
-DEVICE = "auto"         # Utilizes optimal hardware
+DEVICE = "auto"         # Uses optimal hardware
 DTYPE = "float16"       # Memory-efficient precision
 ```
 
@@ -209,7 +209,7 @@ After training, we evaluated the fine-tuned models on the same yaml-cpp benchmar
 - **Token usage reduced by 55%** compared to the base model
 - Coverage remained comparable to the larger Qwen 2.5-Coder 32B model, which achieved 45% line coverage
 
-The fine-tuned models generated more concise code. They learned the structure of fuzz drivers and did not waste tokens on unnecessary explanations or boilerplate. The efficiency gains meant that generating each driver took substantially less time and fewer API tokens, which directly impacts operational costs.
+Fine-tuned models generated more concise code. They learned the structure of fuzz drivers and did not waste tokens on unnecessary explanations or boilerplate. These efficiency gains meant that generating each driver took substantially less time and fewer API tokens, which directly impacts operational costs.
 
 Interestingly, more training data did not always help. The 709-example dataset included some lower-quality drivers, and this may have hurt the model's output. Quality matters more than quantity for fine-tuning specialized tasks. This finding aligns with recent research on data quality in LLM training.
 
@@ -219,11 +219,11 @@ We also tested the fine-tuned models on RapidJSON and pugixml to check generaliz
 
 ## 4.4 Phase 3: Enterprise CI/CD Integration
 
-The final phase moved from controlled experiments to real-world deployment. I should note that this is where things got complicated. Academic research happens in ideal conditions. Enterprise deployment happens in conditions dictated by security policies, legacy infrastructure, and organizational constraints.
+This final phase moved from controlled experiments to real-world deployment. I should note that this is where things got complicated. Academic research happens in ideal conditions. Enterprise deployment happens in conditions dictated by security policies, legacy infrastructure, and organizational constraints.
 
 ### 4.4.1 Architectural Challenges
 
-The first attempt at integration seemed straightforward. We had a working pipeline locally. The enterprise runners used similar Linux environments. How hard could it be?
+Our first attempt at integration seemed straightforward. We had a working pipeline locally. Enterprise runners used similar Linux environments. How hard could it be?
 
 Very hard, it turned out.
 
@@ -243,7 +243,7 @@ We spent considerable time debugging this. The proxy configuration we set for Az
 
 **Challenge 2: Container Networking**
 
-The runners use Buildah containers for isolation. Each build step runs inside a container with its own network namespace. Even if the host could reach external services, the container might not be able to.
+Runners use Buildah containers for isolation. Each build step runs inside a container with its own network namespace. Even if the host could reach external services, the container might not be able to.
 
 We tried several approaches:
 
@@ -281,9 +281,9 @@ After weeks of debugging network issues, we concluded that the standard enterpri
 
 **Azure Private Link Architecture**
 
-The approved solution used Azure Private Link. This creates a private endpoint for Azure services that appears inside the corporate network. Traffic to the LLM endpoint never crosses the public internet.
+Our approved solution used Azure Private Link. This creates a private endpoint for Azure services that appears inside the corporate network. Traffic to the LLM endpoint never crosses the public internet.
 
-The architecture:
+Architecture:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -388,7 +388,7 @@ jobs:
             -T ${PROJ_NAME}_corpus.gz "${ARTIFACTORY_CORPUS_URL}${PROJ_NAME}_corpus.gz"
 ```
 
-The pipeline includes corpus persistence through JFrog Artifactory. Each run downloads the previous corpus, runs fuzzing to extend it, and uploads the updated corpus. This ensures coverage improvements accumulate over time rather than starting fresh each build.
+Our pipeline includes corpus persistence through JFrog Artifactory. Each run downloads the previous corpus, runs fuzzing to extend it, and uploads the updated corpus. This ensures coverage improvements accumulate over time rather than starting fresh each build.
 
 **[Figure 4.4: Network architecture diagram showing the Azure Private Link setup. The CI/CD Runner in CARIAD internal network connects through Azure Private Link Endpoint to Azure OpenAI. Firewall boundaries are illustrated to show why direct connections fail but Private Link succeeds.]**
 
@@ -424,6 +424,6 @@ Generated code running in CI/CD pipelines poses security considerations. What if
 4. The LLM only sees public header files, not sensitive source code
 5. All generated code is logged for audit purposes
 
-The security team approved the architecture after reviewing these controls. They requested additional monitoring of token usage and periodic audits of generated code quality.
+After reviewing these controls, the security team approved the architecture. They requested additional monitoring of token usage and periodic audits of generated code quality.
 
 The next chapter presents experimental results in detail, with quantitative analysis of model performance and coverage metrics across all evaluated configurations.
