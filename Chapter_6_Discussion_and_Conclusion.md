@@ -6,9 +6,9 @@ This chapter interprets the experimental results from Chapter 5, connects them t
 
 ### 6.1.1 What the Data Reveals
 
-The experimental results told a story we did not expect when we started this work.
+Our experimental results told a story we did not expect when we started this work.
 
-The most surprising finding was the inverse relationship between model size and performance. Conventional wisdom in machine learning suggests larger models perform better. Our fuzz driver experiments showed something different.
+Most surprising was the inverse relationship between model size and performance. Conventional wisdom in machine learning suggests larger models perform better. Our fuzz driver experiments showed something different.
 
 Why did the larger general-purpose models fail while smaller specialized ones succeeded? We spent time analyzing the failures and found a consistent explanation. The larger models generated code that looked plausible but fundamentally misunderstood the fuzz driver task. They would create elaborate test scaffolding, call APIs in reasonable sequences, but miss the essential structure that a libFuzzer driver requires. The `LLVMFuzzerTestOneInput` function signature was wrong. The input parsing was incorrect.
 
@@ -51,19 +51,19 @@ We documented our architecture so other teams at CARIAD could replicate it. The 
 
 **RQ1: Can Large Language Models generate fuzz drivers for C++ code that compile successfully, execute without errors, and achieve meaningful code coverage?**
 
-The short answer is yes, with qualifications.
+Yes, with qualifications.
 
-Our experiments demonstrated that specialized code models can generate fuzz drivers meeting these criteria. The results from Chapter 5 show that the best performing models achieved over 40% line coverage on yaml-cpp.
+Our experiments demonstrated that specialized code models can generate fuzz drivers meeting these criteria. Results from Chapter 5 Section 5.2 show that the best performing models achieved over 40% line coverage on yaml-cpp.
 
-The qualifications matter. Not all models succeed. General-purpose models, even large ones, frequently failed. Model selection is critical. The "can LLMs do this" question should really be "which LLMs can do this, and under what conditions."
+However, the qualifications matter. Not all models succeed. General-purpose models, even large ones, frequently failed. Model selection is critical. In practice, the question "can LLMs do this" should really be "which LLMs can do this, and under what conditions."
 
-The coverage numbers, while respectable, likely trail expert human performance. LLM-generated drivers are useful for initial security testing but should not be considered equivalent to carefully crafted manual drivers for critical applications. The advantage lies in automation speed, not coverage depth.
+While respectable, these coverage numbers likely trail expert human performance. LLM-generated drivers are useful for initial security testing but should not be considered equivalent to carefully crafted manual drivers for critical applications. Their advantage lies in automation speed, not coverage depth.
 
 **RQ2: Does model size determine fuzz driver quality, or can smaller models with domain-specific training match or exceed larger general-purpose models?**
 
 Our data strongly supports the second hypothesis. Domain-specific training matters more than raw parameter count for this task.
 
-The evidence is clear from Chapter 5: code-specialized models succeeded where larger general-purpose models failed completely. Our LoRA fine-tuned 1.5B model achieved significant efficiency improvements while producing usable fuzz drivers. The specialized models understood what a fuzz driver should look like because they had seen relevant examples during training.
+Evidence from Chapter 5 Section 5.2 is clear: code-specialized models succeeded where larger general-purpose models failed completely. Our LoRA fine-tuned 1.5B model achieved significant efficiency improvements while producing usable fuzz drivers (see Section 5.3). These specialized models understood what a fuzz driver should look like because they had seen relevant examples during training.
 
 This finding has practical implications. Organizations deploying LLM-based fuzzing do not need expensive API access to the largest available models. A well-chosen mid-sized model, or a fine-tuned smaller model, provides better results at lower cost.
 
@@ -150,7 +150,7 @@ Skilled security engineers are scarce. The automotive industry competes with tec
 
 LLM-assisted fuzzing addresses all three pressures. It provides documented security testing for compliance. It scales to large codebases. It reduces demands on specialized personnel.
 
-The cost analysis from Chapter 5 reinforces this argument. At annual costs lower than a single day of consultant time, even modest improvements in security testing efficiency produce positive return on investment.
+The cost analysis from Chapter 5 Section 5.4 reinforces this argument. At annual costs lower than a single day of consultant time, even modest improvements in security testing efficiency produce positive return on investment.
 
 Adoption barriers remain. Automotive organizations have conservative cultures regarding new tools in safety-adjacent processes. Validation requirements for tools used in ISO 26262 contexts create additional overhead. The path from research prototype to certified production tool involves significant effort.
 

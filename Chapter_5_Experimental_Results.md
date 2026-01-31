@@ -18,7 +18,7 @@ Additional targets included pugixml, jsoncons, fmt, spdlog, and glm. These provi
 
 All local experiments ran on macOS with an Apple M1 Pro processor. The container runtime used Podman with 4 CPUs and 8 GB memory allocated. This choice was deliberate—we wanted hardware that typical automotive development teams have access to. If our approach required expensive GPU clusters, adoption would be severely limited in practice.
 
-The software stack consisted of Podman for containers (chosen over Docker for enterprise compatibility reasons that became painfully clear during CI/CD integration), CMake with Clang for building, libFuzzer via cifuzz for fuzzing, and Ollama for local model inference. For enterprise deployment testing, we used Azure OpenAI with GPT-4o connected via Azure Private Link—a configuration that took weeks to properly establish, as detailed in Chapter 4.
+Our software stack consisted of Podman for containers (chosen over Docker for enterprise compatibility reasons that became painfully clear during CI/CD integration), CMake with Clang for building, libFuzzer via cifuzz for fuzzing, and Ollama for local model inference. For enterprise deployment testing, we used Azure OpenAI with GPT-4o connected via Azure Private Link—a configuration that took weeks to properly establish, as detailed in Chapter 4.
 
 
 ## 5.2 LLM Fuzz Driver Generation Results
@@ -56,7 +56,7 @@ Yi 34B demonstrated a fundamental limitation of general-purpose models for speci
 
 DeepSeek R1 was designed for reasoning tasks. That capability didn't translate to code generation at all. Mixtral's 46.7 billion parameters simply exceeded available hardware resources—we couldn't even complete a full evaluation run.
 
-The pattern was clear: code-specialized models outperformed larger general-purpose models by substantial margins. Size alone does not determine quality for specialized tasks like fuzz driver generation.
+A clear pattern emerged: code-specialized models outperformed larger general-purpose models by substantial margins. Size alone does not determine quality for specialized tasks like fuzz driver generation.
 
 
 ## 5.3 Model Optimization Results
@@ -67,14 +67,14 @@ Based on Phase 1 results, we selected the Qwen 2.5-Coder 1.5B model for fine-tun
 
 We applied Low-Rank Adaptation (LoRA) fine-tuning using fuzz drivers from Google's OSS-Fuzz project as training data. We curated two datasets: a small one with 172 examples and an extended one with 709 examples. Each example consisted of a fuzz driver paired with its target API context, focused on security vulnerability patterns, fuzzing techniques, and automotive-specific code patterns.
 
-The fine-tuning configuration:
+Our fine-tuning configuration:
 - LoRA Rank: 16
 - LoRA Alpha: 32
 - Dropout: 0.1
 - Target Modules: q_proj, v_proj, k_proj, o_proj
 - Precision: float16
 
-The results showed significant efficiency improvements:
+Results showed significant efficiency improvements:
 
 | Model Version | Time Taken | Tokens Used | Efficiency Improvement |
 |--------------|------------|-------------|------------------------|
@@ -82,14 +82,14 @@ The results showed significant efficiency improvements:
 | 172 examples | 12 min | 65k | 20% faster, 42% fewer tokens |
 | 709 examples | 10 min | 50k | 33% faster, 55% fewer tokens |
 
-The extended dataset (709 examples) achieved the best results: 33% faster generation and 55% fewer tokens compared to the base model. Domain-specific fine-tuning works—the model learned to generate more concise, targeted code rather than verbose outputs padded with unnecessary boilerplate.
+With 709 examples, the extended dataset achieved the best results: 33% faster generation and 55% fewer tokens compared to the base model. Domain-specific fine-tuning works—the model learned to generate more concise, targeted code rather than verbose outputs padded with unnecessary boilerplate.
 
 
 ### 5.3.2 Comparative Analysis
 
 Training data quality and quantity both matter, though quality appears more important. The 709-example dataset outperformed the 172-example dataset, but the improvement was incremental rather than dramatic. More diverse examples help the model generalize, but there are diminishing returns.
 
-The key insight: a fine-tuned small model can match larger models while using far fewer computational resources. This makes enterprise deployment practical—you don't need expensive GPU infrastructure to run effective fuzz driver generation.
+One key insight: a fine-tuned small model can match larger models while using far fewer computational resources. This makes enterprise deployment practical—you don't need expensive GPU infrastructure to run effective fuzz driver generation.
 
 However, we should be honest about limitations. The fine-tuned 1.5B model still doesn't match the coverage achieved by the larger Qwen 32B or Gemma 27B models. What it offers is efficiency: acceptable coverage at much lower cost and resource requirements.
 

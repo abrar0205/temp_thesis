@@ -14,7 +14,7 @@ We compiled all targets with AddressSanitizer (ASan) and UndefinedBehaviorSaniti
 
 For integration with our build systems, we used cifuzz from Code Intelligence. Cifuzz wraps libFuzzer and provides additional functionality like corpus management, coverage reporting, and build system integration. The critical feature for our work was cifuzz spark, which handles the LLM integration. Spark takes a CMake target as input, extracts API information automatically, sends it to the configured LLM, and produces a fuzz driver ready for execution.
 
-The choice of cifuzz was deliberate. We evaluated several alternatives including Google's ClusterFuzz and standalone libFuzzer setups. Cifuzz offered the best balance between ease of use and enterprise features. The spark module specifically addressed our core research question by providing a clean interface between the fuzzing infrastructure and LLM backends.
+Our choice of cifuzz was deliberate. We evaluated several alternatives including Google's ClusterFuzz and standalone libFuzzer setups. Cifuzz offered the best balance between ease of use and enterprise features. Its spark module specifically addressed our core research question by providing a clean interface between the fuzzing infrastructure and LLM backends.
 
 ### 4.1.2 LLM Infrastructure
 
@@ -134,7 +134,7 @@ We also tested on several CARIAD internal libraries, though we cannot report tho
 
 Hardware for local evaluation was a workstation with sufficient GPU memory for running 32B parameter models with 4-bit quantization. Larger models like Mixtral 46.7B required offloading to system RAM, which slowed inference.
 
-The evaluation process for each model followed these steps:
+Each model's evaluation followed these steps:
 
 1. Start the model server (Ollama or llama.cpp)
 2. Configure cifuzz spark environment variables
@@ -145,7 +145,7 @@ The evaluation process for each model followed these steps:
 
 We ran each model three times on yaml-cpp to check consistency. Some models produced different outputs on identical prompts, so multiple runs were necessary for reliable results. This variability was itself an interesting finding that we discuss further in Chapter 5.
 
-The full evaluation cycle for one model on one target took approximately 10-15 minutes. With 14 models and 6 primary targets, plus multiple runs for consistency checking, the complete Phase 1 evaluation required about two weeks of continuous testing.
+A full evaluation cycle for one model on one target took approximately 10-15 minutes. With 14 models and 6 primary targets, plus multiple runs for consistency checking, the complete Phase 1 evaluation required about two weeks of continuous testing.
 
 **[Figure 4.2: Evaluation pipeline flowchart. Start with "Model Server Running", then "cifuzz spark generates driver", then decision diamond "Compiles?", if No record failure and stop, if Yes continue to "Run Fuzzer (60s)", then "Record Coverage with llvm-cov", finally "Store Results".]**
 
@@ -159,7 +159,7 @@ Most important for fine-tuning is the training data. We needed high-quality exam
 
 We extracted training examples from OSS-Fuzz. Google has fuzz-tested hundreds of open-source projects through OSS-Fuzz, and the fuzz drivers are publicly available. We focused on C and C++ drivers because those matched our target domain.
 
-The extraction process involved four steps:
+Our extraction process involved four steps:
 
 1. Clone the OSS-Fuzz repository
 2. Identify projects with C/C++ fuzz drivers
@@ -170,7 +170,7 @@ We created two datasets:
 - **Small dataset**: 172 examples, focusing on quality over quantity
 - **Extended dataset**: 709 examples, broader coverage but more noise
 
-The examples included drivers for libraries like FreeType, LibPNG, SQLite, and zlib. These cover a range of API styles from simple functions to complex object-oriented interfaces. We deliberately included diverse examples to help the model generalize rather than memorize specific patterns.
+These examples included drivers for libraries like FreeType, LibPNG, SQLite, and zlib, covering a range of API styles from simple functions to complex object-oriented interfaces. We deliberately included diverse examples to help the model generalize rather than memorize specific patterns.
 
 Quality control was important. We manually reviewed a sample of the extracted drivers to ensure they were actually functional and not stub implementations. About 15% of initially extracted drivers were discarded because they were incomplete or contained obvious errors.
 
@@ -178,7 +178,7 @@ Quality control was important. We manually reviewed a sample of the extracted dr
 
 We used Low-Rank Adaptation (LoRA) rather than full fine-tuning. Full fine-tuning updates all model weights, which requires enormous compute resources. LoRA adds small trainable matrices alongside the frozen base model. This reduces memory requirements by a large margin while achieving similar results on specialized tasks.
 
-The LoRA configuration we used:
+Our LoRA configuration:
 
 ```python
 # LoRA Configuration
@@ -190,11 +190,11 @@ DEVICE = "auto"         # Uses optimal hardware
 DTYPE = "float16"       # Memory-efficient precision
 ```
 
-The rank of 16 was a balance between adaptation capacity and training speed. Higher ranks can capture more complex patterns but require more memory and training time. We tested ranks of 8, 16, and 32. Rank 16 gave the best results for our dataset size.
+A rank of 16 was a balance between adaptation capacity and training speed. Higher ranks can capture more complex patterns but require more memory and training time. We tested ranks of 8, 16, and 32. Rank 16 gave the best results for our dataset size.
 
 We trained on the Qwen 2.5-Coder 1.5B base model. This is a small model that runs quickly on modest hardware. We chose this size specifically because we wanted to test whether fine-tuning could make small models competitive with larger ones.
 
-The training used standard supervised fine-tuning:
+Training used standard supervised fine-tuning:
 - Input: Header files and fuzzing instructions
 - Target: Complete fuzz driver
 - Learning rate: 2e-5 with cosine decay
