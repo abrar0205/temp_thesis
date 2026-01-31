@@ -1,6 +1,6 @@
 # 5 Experimental Results
 
-In this chapter, we present the experimental findings from our three-phase research conducted between May and September 2025. The goal was straightforward: determine whether LLMs can actually generate useful fuzz drivers, and if so, under what conditions. The results were mixed—some genuinely surprising, others confirming what we suspected from the start. These findings directly address the research questions defined in Chapter 1.
+In this chapter, we present the experimental findings from our three-phase research conducted between May and September 2025. The goal was straightforward: determine whether LLMs can generate useful fuzz drivers, and if so, under what conditions. The results were mixed—some genuinely surprising, others confirming what we suspected from the start. These findings directly address the research questions defined in Chapter 1.
 
 
 ## 5.1 Experimental Setup
@@ -16,7 +16,7 @@ Additional targets included pugixml, jsoncons, fmt, spdlog, and glm. These provi
 
 ### 5.1.2 Hardware and Software Configuration
 
-All local experiments ran on macOS with an Apple M1 Pro processor. The container runtime used Podman with 4 CPUs and 8 GB memory allocated. This choice was deliberate—we wanted hardware that typical automotive development teams might actually have access to. If our approach required expensive GPU clusters, adoption would be severely limited in practice.
+All local experiments ran on macOS with an Apple M1 Pro processor. The container runtime used Podman with 4 CPUs and 8 GB memory allocated. This choice was deliberate—we wanted hardware that typical automotive development teams have access to. If our approach required expensive GPU clusters, adoption would be severely limited in practice.
 
 The software stack consisted of Podman for containers (chosen over Docker for enterprise compatibility reasons that became painfully clear during CI/CD integration), CMake with Clang for building, libFuzzer via cifuzz for fuzzing, and Ollama for local model inference. For enterprise deployment testing, we used Azure OpenAI with GPT-4o connected via Azure Private Link—a configuration that took weeks to properly establish, as detailed in Chapter 4.
 

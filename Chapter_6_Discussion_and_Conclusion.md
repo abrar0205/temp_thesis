@@ -1,6 +1,6 @@
 # Chapter 6: Discussion and Conclusion
 
-This chapter interprets the experimental results from Chapter 5, connects them to the research questions posed in Chapter 1, and examines what the findings mean for practitioners. The discussion covers both successes and failures. The chapter closes with recommendations for future research and a summary of contributions.
+This chapter interprets the experimental results from Chapter 5, connects them to the research questions posed in Chapter 1, and examines what the findings mean for practitioners. We discuss both successes and failures, then close with recommendations for future research and a summary of contributions.
 
 ## 6.1 Interpretation of Results
 
@@ -40,7 +40,7 @@ This experience taught us something important about AI deployment in enterprise 
 
 The self-hosted runner approach we ultimately implemented has broader implications. Traditional CI/CD uses cloud hosted runners that scale automatically. Self-hosted runners require managing physical or virtual machines within the corporate network. This adds operational complexity but enables access to internal resources that cloud runners cannot reach.
 
-We documented our architecture so other teams at CARIAD could replicate it. The combination of self-hosted runners plus Azure Private Link provides a template for integrating cloud AI services into secure enterprise environments. The pattern should apply beyond fuzzing to any use case requiring LLM access from CI/CD pipelines.
+We documented our architecture so other teams at CARIAD could replicate it. The combination of self-hosted runners plus Azure Private Link provides a template for integrating cloud AI services into secure enterprise environments. This pattern should apply beyond fuzzing to any use case requiring LLM access from CI/CD pipelines.
 
 **[Suggested Diagram: Network Architecture Flow]**
 *A diagram showing the data flow from CI/CD runner through Azure Private Link to the LLM API would help visualize this architecture. The diagram should show the security boundary between the corporate network and public cloud, with Private Link bridging them securely.*

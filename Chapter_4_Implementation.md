@@ -4,7 +4,7 @@ This chapter describes how we turned the methodology from Chapter 3 into working
 
 ## 4.1 Toolchain Selection and Rationale
 
-Before writing any code, we needed to select the right tools. This decision was not straightforward because we had constraints from multiple directions. The university wanted reproducible research. CARIAD needed enterprise compatibility. And we wanted tools that would actually work on the hardware we had available.
+Before writing any code, we needed to select the right tools. This decision was not straightforward because we had constraints from multiple directions. The university wanted reproducible research. CARIAD needed enterprise compatibility. And we wanted tools that would work on the hardware we had available.
 
 ### 4.1.1 Fuzzing Infrastructure
 
