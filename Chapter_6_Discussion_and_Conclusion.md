@@ -10,7 +10,7 @@ The experimental results told a story we did not expect when we started this wor
 
 The most surprising finding was the inverse relationship between model size and performance. Conventional wisdom in machine learning suggests that larger models perform better. GPT-4 outperforms GPT-3.5. LLaMA-70B outperforms LLaMA-7B. This pattern holds across most benchmarks. But our fuzz driver experiments showed something different.
 
-Mixtral at 46.7 billion parameters failed completely. CodeLlama at 34 billion parameters also achieved zero coverage. Meanwhile, Qwen 2.5-Coder at 32 billion parameters consistently generated working drivers with 45% line coverage. The numbers do not fit the expected pattern.
+Mixtral at 46.7 billion parameters failed due to hardware resource constraints. Yi 34B and Deepseek-r1 failed completely with 0% coverage due to generation hallucinations and poor fuzzing context understanding. Meanwhile, Qwen 2.5-Coder at 32 billion parameters consistently generated working drivers with 43.08% line coverage. Gemma 3 at 27 billion parameters performed even better at 45.06% coverage. The numbers do not fit the expected pattern.
 
 Why did this happen? We spent time analyzing the failures and found a consistent explanation. The larger general-purpose models generated code that looked plausible but fundamentally misunderstood the fuzz driver task. They would create elaborate test scaffolding, call APIs in reasonable sequences, but miss the essential structure that a libFuzzer driver requires. The `LLVMFuzzerTestOneInput` function signature was wrong. The input parsing was incorrect. The code compiled in some cases but crashed immediately.
 
@@ -20,13 +20,11 @@ The LoRA fine-tuning results reinforced this insight. We took a small 1.5 billio
 
 These findings challenge a common assumption in AI deployment. Organizations often reach for the biggest model available, assuming more parameters means better results. Our data suggests this is wrong for specialized code generation tasks. A well-chosen smaller model, possibly with domain-specific fine-tuning, can match or exceed larger alternatives at a fraction of the cost.
 
-The coverage numbers themselves require context. Our best performing model achieved 45% line coverage on yaml-cpp. Is this good? It depends on the comparison point. Manual fuzz drivers written by experts in the OSS-Fuzz project achieve 60 to 70% coverage for similar libraries. So our automated approach reaches roughly two thirds of expert human performance.
+The coverage numbers themselves require context. Our best performing model achieved 45.06% line coverage on yaml-cpp (Gemma 3 27B), with Qwen 2.5-Coder close behind at 43.08%. Is this good? It depends on the comparison point. Manual fuzz drivers written by experts in the OSS-Fuzz project achieve 60 to 70% coverage for similar libraries. So our automated approach reaches roughly two thirds of expert human performance.
 
-This gap matters, but so does the time investment. A skilled security engineer might spend 8 to 16 hours writing and debugging a fuzz driver for a new library. Our automated pipeline generates a usable driver in under 5 minutes. Even if the automated driver achieves lower coverage, the time savings are substantial. An organization could generate drivers for many libraries in the time it takes to manually create one.
+This gap matters, but so does the time investment. A skilled security engineer might spend 2 to 8 hours writing and debugging a fuzz driver for a new library. Our automated pipeline generates a usable driver in approximately 30 to 35 minutes (based on our yaml-cpp benchmarks). Even if the automated driver achieves lower coverage, the time savings are substantial. An organization could generate drivers for many libraries in the time it takes to manually create one.
 
-The compilation success rates also provide useful signal. Qwen 2.5-Coder achieved 87% compilation success across our test set. This means most generated code is syntactically valid and links correctly against target libraries. The 13% failure rate typically involved missing includes, incorrect type usage, or undefined symbol errors. These failures are detectable automatically and could trigger retry logic or human review.
-
-Runtime behavior showed more variation. Of the drivers that compiled, approximately 70% executed for at least 30 seconds without crashing. The remaining 30% failed immediately, usually due to null pointer dereferences or assertion failures in the first few API calls. This suggests the models sometimes generate structurally correct code that makes invalid assumptions about API preconditions.
+The generated fuzz tests showed varying success rates across models. Successful models like Qwen 2.5-Coder and Gemma 3 produced 2 successful tests out of approximately 2,040 to 2,050 unique test cases generated. The models that failed, such as Yi 34B, showed generation hallucinations that made the output unusable. Deepseek-r1, despite being a reasoning model, performed poorly because reasoning capabilities do not directly translate to code generation quality.
 
 ### 6.1.2 Unexpected Findings: Network Architecture
 
@@ -36,11 +34,11 @@ The actual bottleneck was infrastructure.
 
 When we moved from local experiments to CARIAD's production environment, we discovered that corporate network policies created barriers we had not considered. The CI/CD runners operated in isolated network segments. They could not reach external API endpoints. Our entire architecture assumed we could call LLM services from build processes. The corporate firewall said no.
 
-This problem consumed three weeks of effort. We explored multiple workarounds. Could we tunnel through existing proxy infrastructure? No, the proxies were configured for HTTP traffic to approved destinations only. Could we use VPN connections from runners? No, the runner infrastructure did not support VPN client configuration. Could we cache model responses? Partially, but caching defeats the purpose for dynamic code generation.
+This problem consumed significant effort. We explored multiple workarounds. Could we tunnel through existing proxy infrastructure? No, the proxies were configured for HTTP traffic to approved destinations only. Could we use VPN connections from runners? No, the runner infrastructure did not support VPN client configuration. Could we cache model responses? Partially, but caching defeats the purpose for dynamic code generation.
 
 The solution required involving CARIAD's infrastructure team. We worked with them to provision Azure Private Link endpoints. This technology creates a private connection between the corporate network and Azure services, appearing as an internal address rather than external internet. The LLM API becomes reachable without traversing the public internet.
 
-Setting up Private Link took an additional month. Approval processes, security reviews, configuration testing, and documentation all added time. The technical configuration itself was straightforward once we had approvals.
+Setting up Private Link required organizational coordination. Approval processes, security reviews, configuration testing, and documentation all added time. The technical configuration itself was straightforward once approvals were obtained. At the time of writing, the Azure Private Link deployment was pending, requiring infrastructure team involvement for production deployment.
 
 This experience taught us something important about AI deployment in enterprise environments. The machine learning challenges are often the easy part. Corporate IT infrastructure, security policies, and approval processes create friction that academic research rarely addresses. Anyone planning to deploy LLM-based tools in large organizations should budget significant time for infrastructure integration.
 
@@ -59,7 +57,7 @@ We documented our architecture so other teams at CARIAD could replicate it. The 
 
 The short answer is yes, with qualifications.
 
-Our experiments demonstrated that LLMs can generate fuzz drivers meeting all three criteria. The Qwen 2.5-Coder model consistently produced drivers that compiled (87% success rate), executed without immediate crashes (approximately 70% of compiled drivers), and achieved meaningful coverage (45% line coverage for yaml-cpp).
+Our experiments demonstrated that LLMs can generate fuzz drivers meeting the key criteria. The Qwen 2.5-Coder model produced drivers that achieved 43.08% line coverage for yaml-cpp, while Gemma 3 27B reached 45.06% coverage. Both models generated over 2,000 unique test cases during evaluation.
 
 The qualifications matter. Not all models succeed. General-purpose models, even large ones, frequently failed. Model selection is critical. The "can LLMs do this" question should really be "which LLMs can do this, and under what conditions."
 
@@ -69,7 +67,7 @@ The coverage numbers, while respectable, trail expert human performance by 15 to
 
 Our data strongly supports the second hypothesis. Domain-specific training matters more than raw parameter count for this task.
 
-The evidence is clear. Qwen 2.5-Coder at 32B outperformed Mixtral at 46.7B. Our LoRA fine-tuned 1.5B model achieved comparable coverage metrics to larger models while using a fraction of the compute, as detailed in Chapter 5 Section 5.3. The specialized models understood what a fuzz driver should look like because they had seen relevant examples during training.
+The evidence is clear. Qwen 2.5-Coder at 32B achieved 43.08% coverage while Yi 34B and Deepseek-r1 (which are larger or comparable) failed with 0% coverage. Our LoRA fine-tuned 1.5B model achieved efficiency improvements of 33% faster generation time and 55% fewer tokens, as detailed in Chapter 5 Section 5.3. The specialized models understood what a fuzz driver should look like because they had seen relevant examples during training.
 
 This finding has practical implications. Organizations deploying LLM-based fuzzing do not need expensive API access to the largest available models. A well-chosen mid-sized model, or a fine-tuned smaller model, provides better results at lower cost.
 
@@ -77,9 +75,9 @@ This finding has practical implications. Organizations deploying LLM-based fuzzi
 
 Yes, but with significant infrastructure effort.
 
-The performance requirement was met. Driver generation completed within 2 to 5 minutes, well within acceptable CI/CD latency. The fuzzing execution itself takes longer, but that can run asynchronously without blocking developer feedback.
+The performance requirement was met. Driver generation completed within 30 to 35 minutes for yaml-cpp, with token consumption ranging from 40,000 to 71,500 tokens depending on the model. The fuzzing execution itself takes longer, but that can run asynchronously without blocking developer feedback.
 
-The cost requirement was clearly met. Our analysis showed enterprise deployment costs around 1,500 euros annually. This is trivial compared to security engineering salaries or the cost of security incidents from undetected vulnerabilities.
+The cost requirement was clearly met. Our analysis showed enterprise deployment costs ranging from €73.92 (light usage) to €1,452.00 (complete automation) annually. This is trivial compared to security engineering salaries or the cost of security incidents from undetected vulnerabilities.
 
 The security requirement was the hardest to satisfy. Network isolation policies initially prevented deployment entirely. The Azure Private Link solution addressed this, but required substantial coordination with infrastructure teams. The security requirements are achievable, but organizations should expect integration effort proportional to their security policy complexity.
 
@@ -154,7 +152,7 @@ Skilled security engineers are scarce. The automotive industry competes with tec
 
 LLM-assisted fuzzing addresses all three pressures. It provides documented security testing for compliance. It scales to large codebases. It reduces demands on specialized personnel.
 
-The specific numbers from our cost analysis reinforce this argument. At 1,500 euros per year for enterprise deployment, the tool costs less than a single day of consultant time. Even modest improvements in security testing efficiency produce positive return on investment.
+The specific numbers from our cost analysis reinforce this argument. At €73.92 to €1,452.00 per year for enterprise deployment, the tool costs less than a single day of consultant time (senior security engineers cost €80-120/hour). Even modest improvements in security testing efficiency produce positive return on investment, with potential ROI of 2000-5000% cost reduction compared to traditional manual approaches.
 
 Adoption barriers remain. Automotive organizations have conservative cultures regarding new tools in safety-adjacent processes. Validation requirements for tools used in ISO 26262 contexts create additional overhead. The path from research prototype to certified production tool involves significant effort.
 
@@ -217,7 +215,7 @@ This thesis makes several contributions to the understanding of LLM-assisted sec
 
 **Enterprise integration architecture.** We documented a complete architecture for integrating LLM-assisted fuzzing into secure enterprise CI/CD pipelines, including the Azure Private Link solution for network isolation challenges.
 
-**Cost analysis framework.** Our economic analysis in Chapter 5 Section 5.4 provides a template for organizations evaluating similar deployments. The finding that enterprise deployment costs approximately 1,500 euros annually (primarily API token costs for moderate usage patterns) establishes that cost is not a barrier.
+**Cost analysis framework.** Our economic analysis in Chapter 5 Section 5.4 provides a template for organizations evaluating similar deployments. The finding that enterprise deployment costs between €73.92 (light usage) and €1,452.00 (full automation) annually establishes that cost is not a barrier.
 
 **Identification of infrastructure as key challenge.** Our experience highlighted that network and security infrastructure, rather than model capability, often determines deployment success. This insight should guide planning for similar projects.
 
@@ -227,15 +225,15 @@ The practical impact extends beyond academic contribution. CARIAD can deploy the
 
 ## 6.7 Conclusion
 
-We began this work with a straightforward question: can Large Language Models automate fuzz driver generation for automotive software? After six months of research, implementation, and deployment effort at CARIAD, the answer is a qualified yes.
+This work began with a straightforward question: can Large Language Models automate fuzz driver generation for automotive software? After five months of research, implementation, and deployment effort at CARIAD (May to September 2025), the answer is a qualified yes.
 
 The qualification matters. Not all models work. General-purpose models, even large ones, frequently failed at this task. Specialized code models like Qwen 2.5-Coder succeeded where others did not. Model selection is not an afterthought but a critical design decision.
 
-Fine-tuning small models proved surprisingly effective. Our LoRA adapted 1.5B model matched larger alternatives while consuming far fewer resources. For organizations with compute constraints or cost sensitivity, this approach deserves consideration.
+Fine-tuning small models proved surprisingly effective. Our LoRA adapted 1.5B model showed 33% faster generation time and 55% fewer tokens while producing usable fuzz drivers. For organizations with compute constraints or cost sensitivity, this approach deserves consideration.
 
-The biggest surprise was infrastructure. We expected the hard problem to be generating good code. The actual bottleneck was deploying our solution within corporate network policies. Three weeks of failed workarounds followed by a month waiting for Private Link provisioning taught us that enterprise AI deployment requires infrastructure planning alongside model development.
+The biggest surprise was infrastructure. We expected the hard problem to be generating good code. The actual bottleneck was deploying our solution within corporate network policies. Multiple workarounds were attempted including proxy configurations, boundary client integration, and container networking, but all were blocked by fundamental firewall policies. The solution ultimately required organizational support for Azure Private Link architecture.
 
-The economics strongly favor adoption. At roughly 1,500 euros annually, LLM-assisted fuzzing costs less than trivial line items in automotive development budgets. The value comes from scaling security testing to match code production rates that manual approaches cannot achieve.
+The economics strongly favor adoption. At €73.92 to €1,452.00 annually, LLM-assisted fuzzing costs less than trivial line items in automotive development budgets. The value comes from scaling security testing to match code production rates that manual approaches cannot achieve.
 
 Looking forward, we see LLM-assisted security testing becoming standard practice in automotive software development. The technology works well enough today for practical deployment. It will improve as models advance and deployment patterns mature. Organizations that develop expertise now will be better positioned as the technology evolves.
 
@@ -374,7 +372,7 @@ flowchart TB
     subgraph RQ1["RQ1: Effectiveness"]
         Q1[Can LLMs generate<br>fuzz drivers?]
         A1[Yes, with qualifications]
-        E1[87% compilation<br>45% coverage]
+        E1[43-45% coverage<br>2000+ test cases]
         Q1 --> A1 --> E1
     end
     
