@@ -20,7 +20,7 @@ The LoRA fine-tuning results reinforced this insight. We took a small 1.5 billio
 
 These findings challenge a common assumption in AI deployment. Organizations often reach for the biggest model available, assuming more parameters means better results. Our data suggests this is wrong for specialized code generation tasks. A well-chosen smaller model, possibly with domain-specific fine-tuning, can match or exceed larger alternatives at a fraction of the cost.
 
-The coverage numbers themselves require context. Our best performing model achieved 45.06% line coverage on yaml-cpp (Gemma 3 27B), with Qwen 2.5-Coder close behind at 43.08%. Is this good? It depends on the comparison point. Manual fuzz drivers written by experts in the OSS-Fuzz project achieve 60 to 70% coverage for similar libraries. So our automated approach reaches roughly two thirds of expert human performance.
+The coverage numbers themselves require context. Our best performing model achieved 45.06% line coverage on yaml-cpp (Gemma 3 27B), with Qwen 2.5-Coder close behind at 43.08%. Is this good? The original thesis proposal considered that achieving even 40% coverage while saving hours of expert time would constitute meaningful progress. By this standard, the automated approach succeeded. However, manually written fuzz drivers by security experts typically achieve higher coverage because they incorporate domain knowledge about edge cases and API contracts that LLMs may miss.
 
 This gap matters, but so does the time investment. A skilled security engineer might spend 2 to 8 hours writing and debugging a fuzz driver for a new library. Our automated pipeline generates a usable driver in approximately 30 to 35 minutes (based on our yaml-cpp benchmarks). Even if the automated driver achieves lower coverage, the time savings are substantial. An organization could generate drivers for many libraries in the time it takes to manually create one.
 
@@ -61,7 +61,7 @@ Our experiments demonstrated that LLMs can generate fuzz drivers meeting the key
 
 The qualifications matter. Not all models succeed. General-purpose models, even large ones, frequently failed. Model selection is critical. The "can LLMs do this" question should really be "which LLMs can do this, and under what conditions."
 
-The coverage numbers, while respectable, trail expert human performance by 15 to 25 percentage points. LLM-generated drivers are useful for initial security testing but should not be considered equivalent to carefully crafted manual drivers for critical applications.
+The coverage numbers, while respectable, likely trail expert human performance. LLM-generated drivers are useful for initial security testing but should not be considered equivalent to carefully crafted manual drivers for critical applications. The advantage lies in automation speed, not coverage depth.
 
 **RQ2: Does model size determine fuzz driver quality, or can smaller models with domain-specific training match or exceed larger general-purpose models?**
 
@@ -99,12 +99,14 @@ Anecdotally, during our experiments, one generated driver did trigger an asserti
 
 **What failure modes are most common in generated drivers?**
 
-We categorized failures into several types:
+Based on our observations during experiments, failures fell into several categories:
 
-1. Structural errors (wrong function signature, missing entry point): approximately 40% of failures
-2. Type mismatches (incorrect parameter types, missing casts): approximately 25% of failures
-3. Missing includes or dependencies: approximately 20% of failures
-4. Runtime crashes from invalid API usage: approximately 15% of failures
+1. Structural errors (wrong function signature, missing entry point)
+2. Type mismatches (incorrect parameter types, missing casts)
+3. Missing includes or dependencies
+4. Runtime crashes from invalid API usage
+
+Structural errors were the most frequent issue. The models often generated code that resembled fuzz drivers but lacked the correct `LLVMFuzzerTestOneInput` function signature or proper libFuzzer entry point structure.
 
 The structural errors were often recoverable through prompt refinement. Adding explicit examples of correct fuzz driver structure to the prompt reduced these failures significantly in follow-up experiments.
 
@@ -252,10 +254,10 @@ We hope this work provides useful guidance for researchers and practitioners wor
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4472C4'}}}%%
 xychart-beta
-    title "Code Coverage by Model"
-    x-axis ["Qwen 2.5-Coder (32B)", "LoRA Fine-tuned (1.5B)", "CodeLlama (34B)", "Mixtral (46.7B)"]
+    title "Code Coverage by Model (yaml-cpp)"
+    x-axis ["Gemma 3 (27B)", "Qwen 2.5-Coder (32B)", "Phi (14B)", "Yi 34B", "Deepseek-r1", "Mixtral (46.7B)"]
     y-axis "Line Coverage (%)" 0 --> 50
-    bar [45, 43, 0, 0]
+    bar [45.06, 43.08, 34.26, 0, 0, 0]
 ```
 
 ### Figure 6.2: Enterprise Network Architecture
@@ -386,7 +388,7 @@ flowchart TB
     subgraph RQ3["RQ3: Feasibility"]
         Q3[Can it integrate into<br>enterprise CI/CD?]
         A3[Yes, with significant<br>infrastructure effort]
-        E3[Azure Private Link<br>Self-hosted runners<br>~1,500€/year]
+        E3[Azure Private Link<br>Self-hosted runners<br>€74-€1,452/year]
         Q3 --> A3 --> E3
     end
     
