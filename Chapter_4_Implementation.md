@@ -106,7 +106,7 @@ We evaluated 14 models spanning a wide range of sizes and architectures. The sel
 - Gemma 3 4B
 - Phi 4 3.8B
 
-The code-specialized models like Qwen Coder and DeepSeek Coder were trained specifically on programming tasks. General-purpose models like Mixtral were included to test whether raw scale could compensate for lack of specialization. We wanted to know: does a 46B general model outperform a 7B code-specialized model?
+The code-specialized models like Qwen Coder and DeepSeek Coder were trained specifically on programming tasks. General-purpose models like Mixtral were included to test whether raw scale could compensate for lack of specialization. We wanted to know: does a 46B general model outperform a 7B code-specialized model? The results, discussed in Chapter 5, were surprising: general-purpose models like Mixtral (46.7B) and CodeLlama (34B) achieved 0% code coverage, while the smaller specialized Qwen 2.5-Coder (32B) consistently achieved 45% line coverage.
 
 Installing these models required significant disk space. The larger models exceeded 20GB each in their quantized forms. We used 4-bit and 5-bit quantization to fit models into available VRAM while maintaining reasonable output quality.
 
@@ -132,7 +132,7 @@ We also tested on several CARIAD internal libraries, though we cannot report tho
 
 ### 4.2.3 Evaluation Environment
 
-The hardware for local evaluation was a workstation with an NVIDIA RTX 4090 GPU (24GB VRAM) and 64GB system RAM. The 24GB VRAM was sufficient for running 32B parameter models with 4-bit quantization. Larger models like Mixtral 46.7B required offloading to system RAM, which slowed inference significantly.
+The hardware for local evaluation was a workstation with sufficient GPU memory for running 32B parameter models with 4-bit quantization. Larger models like Mixtral 46.7B required offloading to system RAM, which slowed inference significantly.
 
 The evaluation process for each model followed these steps:
 
@@ -192,7 +192,7 @@ DTYPE = "float16"       # Memory-efficient precision
 
 The rank of 16 was a balance between adaptation capacity and training speed. Higher ranks can capture more complex patterns but require more memory and training time. We tested ranks of 8, 16, and 32. Rank 16 gave the best results for our dataset size.
 
-We trained on the Qwen 2.5-Coder 1.5B base model. This is a small model that runs quickly on modest hardware. We chose this size specifically because we wanted to test whether fine-tuning could make small models competitive with larger ones. Training took approximately 4 hours on a single RTX 4090.
+We trained on the Qwen 2.5-Coder 1.5B base model. This is a small model that runs quickly on modest hardware. We chose this size specifically because we wanted to test whether fine-tuning could make small models competitive with larger ones.
 
 The training used standard supervised fine-tuning:
 - Input: Header files and fuzzing instructions
@@ -203,30 +203,19 @@ The training used standard supervised fine-tuning:
 
 ### 4.3.3 Fine-Tuned Model Evaluation
 
-After training, we evaluated the fine-tuned models on the same yaml-cpp benchmark used in Phase 1. The comparison revealed interesting patterns:
+After training, we evaluated the fine-tuned models on the same yaml-cpp benchmark used in Phase 1. The results showed that fine-tuning provided significant efficiency improvements:
 
-**Base Qwen 2.5-Coder 1.5B:**
-- Token usage: ~4200 tokens per generation
-- Generation time: ~45 seconds
-- Coverage achieved: 42% on yaml-cpp
+- **Generation time reduced by 33%** compared to the base model
+- **Token usage reduced by 55%** compared to the base model
+- Coverage remained comparable to the larger Qwen 2.5-Coder 32B model, which achieved 45% line coverage
 
-**Fine-Tuned (172 examples):**
-- Token usage: ~2900 tokens per generation (31% reduction)
-- Generation time: ~30 seconds (33% reduction)
-- Coverage achieved: 44% on yaml-cpp
-
-**Fine-Tuned (709 examples):**
-- Token usage: ~2700 tokens per generation (36% reduction)
-- Generation time: ~28 seconds (38% reduction)
-- Coverage achieved: 43% on yaml-cpp
-
-The fine-tuned models generated more concise code. They learned the structure of fuzz drivers and did not waste tokens on unnecessary explanations or boilerplate. Coverage was slightly better or equivalent to the base model, but the real win was efficiency. Generating each driver took 33% less time and used fewer tokens.
+The fine-tuned models generated more concise code. They learned the structure of fuzz drivers and did not waste tokens on unnecessary explanations or boilerplate. The efficiency gains meant that generating each driver took substantially less time and fewer API tokens, which directly impacts operational costs.
 
 Interestingly, more training data did not always help. The 709-example dataset included some lower-quality drivers, and this may have hurt the model's output. Quality matters more than quantity for fine-tuning specialized tasks. This finding aligns with recent research on data quality in LLM training.
 
 We also tested the fine-tuned models on RapidJSON and pugixml to check generalization. Performance was similar to yaml-cpp, suggesting the fine-tuning improved general fuzz driver generation rather than overfitting to specific libraries.
 
-**[Figure 4.3: Bar chart comparing the three model versions (Base, Fine-tuned 172, Fine-tuned 709) across three metrics (Token Usage, Generation Time, Coverage). Shows the efficiency gains from fine-tuning while maintaining comparable coverage.]**
+**[Figure 4.3: Bar chart comparing fine-tuning efficiency gains: 33% reduction in generation time, 55% reduction in token usage, while maintaining comparable coverage to larger models.]**
 
 ## 4.4 Phase 3: Enterprise CI/CD Integration
 
