@@ -12,13 +12,13 @@ The most surprising finding was the inverse relationship between model size and 
 
 Mixtral at 46.7 billion parameters failed completely. CodeLlama at 34 billion parameters also achieved zero coverage. Meanwhile, Qwen 2.5-Coder at 32 billion parameters consistently generated working drivers with 45% line coverage. The numbers do not fit the expected pattern.
 
-Why did this happen? We spent time analyzing the failures and found a consistent explanation. The larger general purpose models generated code that looked plausible but fundamentally misunderstood the fuzz driver task. They would create elaborate test scaffolding, call APIs in reasonable sequences, but miss the essential structure that a libFuzzer driver requires. The `LLVMFuzzerTestOneInput` function signature was wrong. The input parsing was incorrect. The code compiled in some cases but crashed immediately.
+Why did this happen? We spent time analyzing the failures and found a consistent explanation. The larger general-purpose models generated code that looked plausible but fundamentally misunderstood the fuzz driver task. They would create elaborate test scaffolding, call APIs in reasonable sequences, but miss the essential structure that a libFuzzer driver requires. The `LLVMFuzzerTestOneInput` function signature was wrong. The input parsing was incorrect. The code compiled in some cases but crashed immediately.
 
 Qwen 2.5-Coder succeeded because it was trained specifically on code generation tasks. It understood the structural patterns of fuzz drivers from its training data. The model had seen enough examples of the correct form to reproduce it reliably. This matters more than raw parameter count.
 
-The LoRA fine tuning results reinforced this insight. We took a small 1.5 billion parameter model and fine tuned it on high quality fuzz drivers from the OSS-Fuzz project. This tiny model, after adaptation, produced drivers that matched the quality of much larger models. Generation time dropped by 33%. Token usage dropped by 55%. The specialized knowledge embedded through fine tuning compensated for the reduced parameter count.
+The LoRA fine-tuning results reinforced this insight. We took a small 1.5 billion parameter model and fine-tuned it on high-quality fuzz drivers from the OSS-Fuzz project. This tiny model, after adaptation, produced drivers that matched the quality of much larger models. Generation time dropped by 33%. Token usage dropped by 55%. The specialized knowledge embedded through fine-tuning compensated for the reduced parameter count.
 
-These findings challenge a common assumption in AI deployment. Organizations often reach for the biggest model available, assuming more parameters means better results. Our data suggests this is wrong for specialized code generation tasks. A well chosen smaller model, possibly with domain specific fine tuning, can match or exceed larger alternatives at a fraction of the cost.
+These findings challenge a common assumption in AI deployment. Organizations often reach for the biggest model available, assuming more parameters means better results. Our data suggests this is wrong for specialized code generation tasks. A well-chosen smaller model, possibly with domain-specific fine-tuning, can match or exceed larger alternatives at a fraction of the cost.
 
 The coverage numbers themselves require context. Our best performing model achieved 45% line coverage on yaml-cpp. Is this good? It depends on the comparison point. Manual fuzz drivers written by experts in the OSS-Fuzz project achieve 60 to 70% coverage for similar libraries. So our automated approach reaches roughly two thirds of expert human performance.
 
@@ -30,7 +30,7 @@ Runtime behavior showed more variation. Of the drivers that compiled, approximat
 
 ### 6.1.2 Unexpected Findings: Network Architecture
 
-We anticipated the core technical challenge would be generating high quality fuzz drivers. The models would struggle with C++ complexity, API understanding, or coverage optimization. We planned our research around these expected difficulties.
+We anticipated the core technical challenge would be generating high-quality fuzz drivers. The models would struggle with C++ complexity, API understanding, or coverage optimization. We planned our research around these expected difficulties.
 
 The actual bottleneck was infrastructure.
 
@@ -42,11 +42,11 @@ The solution required involving CARIAD's infrastructure team. We worked with the
 
 Setting up Private Link took an additional month. Approval processes, security reviews, configuration testing, and documentation all added time. The technical configuration itself was straightforward once we had approvals.
 
-This experience taught us something important about AI deployment in enterprise environments. The machine learning challenges are often the easy part. Corporate IT infrastructure, security policies, and approval processes create friction that academic research rarely addresses. Anyone planning to deploy LLM based tools in large organizations should budget significant time for infrastructure integration.
+This experience taught us something important about AI deployment in enterprise environments. The machine learning challenges are often the easy part. Corporate IT infrastructure, security policies, and approval processes create friction that academic research rarely addresses. Anyone planning to deploy LLM-based tools in large organizations should budget significant time for infrastructure integration.
 
-The self hosted runner approach we ultimately implemented has broader implications. Traditional CI/CD uses cloud hosted runners that scale automatically. Self hosted runners require managing physical or virtual machines within the corporate network. This adds operational complexity but enables access to internal resources that cloud runners cannot reach.
+The self-hosted runner approach we ultimately implemented has broader implications. Traditional CI/CD uses cloud hosted runners that scale automatically. Self-hosted runners require managing physical or virtual machines within the corporate network. This adds operational complexity but enables access to internal resources that cloud runners cannot reach.
 
-We documented our architecture so other teams at CARIAD could replicate it. The combination of self hosted runners plus Azure Private Link provides a template for integrating cloud AI services into secure enterprise environments. The pattern should apply beyond fuzzing to any use case requiring LLM access from CI/CD pipelines.
+We documented our architecture so other teams at CARIAD could replicate it. The combination of self-hosted runners plus Azure Private Link provides a template for integrating cloud AI services into secure enterprise environments. The pattern should apply beyond fuzzing to any use case requiring LLM access from CI/CD pipelines.
 
 **[Suggested Diagram: Network Architecture Flow]**
 *A diagram showing the data flow from CI/CD runner through Azure Private Link to the LLM API would help visualize this architecture. The diagram should show the security boundary between the corporate network and public cloud, with Private Link bridging them securely.*
@@ -61,19 +61,19 @@ The short answer is yes, with qualifications.
 
 Our experiments demonstrated that LLMs can generate fuzz drivers meeting all three criteria. The Qwen 2.5-Coder model consistently produced drivers that compiled (87% success rate), executed without immediate crashes (approximately 70% of compiled drivers), and achieved meaningful coverage (45% line coverage for yaml-cpp).
 
-The qualifications matter. Not all models succeed. General purpose models, even large ones, frequently failed. Model selection is critical. The "can LLMs do this" question should really be "which LLMs can do this, and under what conditions."
+The qualifications matter. Not all models succeed. General-purpose models, even large ones, frequently failed. Model selection is critical. The "can LLMs do this" question should really be "which LLMs can do this, and under what conditions."
 
-The coverage numbers, while respectable, trail expert human performance by 15 to 25 percentage points. LLM generated drivers are useful for initial security testing but should not be considered equivalent to carefully crafted manual drivers for critical applications.
+The coverage numbers, while respectable, trail expert human performance by 15 to 25 percentage points. LLM-generated drivers are useful for initial security testing but should not be considered equivalent to carefully crafted manual drivers for critical applications.
 
-**RQ2: Does model size determine fuzz driver quality, or can smaller models with domain specific training match or exceed larger general purpose models?**
+**RQ2: Does model size determine fuzz driver quality, or can smaller models with domain-specific training match or exceed larger general-purpose models?**
 
-Our data strongly supports the second hypothesis. Domain specific training matters more than raw parameter count for this task.
+Our data strongly supports the second hypothesis. Domain-specific training matters more than raw parameter count for this task.
 
-The evidence is clear. Qwen 2.5-Coder at 32B outperformed Mixtral at 46.7B. Our LoRA fine tuned 1.5B model achieved comparable coverage metrics to larger models while using a fraction of the compute, as detailed in Chapter 5 Section 5.3. The specialized models understood what a fuzz driver should look like because they had seen relevant examples during training.
+The evidence is clear. Qwen 2.5-Coder at 32B outperformed Mixtral at 46.7B. Our LoRA fine-tuned 1.5B model achieved comparable coverage metrics to larger models while using a fraction of the compute, as detailed in Chapter 5 Section 5.3. The specialized models understood what a fuzz driver should look like because they had seen relevant examples during training.
 
-This finding has practical implications. Organizations deploying LLM based fuzzing do not need expensive API access to the largest available models. A well chosen mid sized model, or a fine tuned smaller model, provides better results at lower cost.
+This finding has practical implications. Organizations deploying LLM-based fuzzing do not need expensive API access to the largest available models. A well-chosen mid-sized model, or a fine-tuned smaller model, provides better results at lower cost.
 
-**RQ3: Can LLM assisted fuzz driver generation be integrated into secure enterprise CI/CD pipelines while meeting performance, cost, and security requirements?**
+**RQ3: Can LLM-assisted fuzz driver generation be integrated into secure enterprise CI/CD pipelines while meeting performance, cost, and security requirements?**
 
 Yes, but with significant infrastructure effort.
 
@@ -87,7 +87,7 @@ The security requirement was the hardest to satisfy. Network isolation policies 
 
 Beyond the primary questions, our work revealed answers to questions we did not explicitly ask at the start.
 
-**What types of libraries are best suited for LLM generated fuzz drivers?**
+**What types of libraries are best suited for LLM-generated fuzz drivers?**
 
 Our experiments across multiple repositories showed that simpler APIs with clear documentation produced better drivers. Libraries with extensive header comments, consistent function signatures, and straightforward data types yielded higher success rates. Complex APIs with heavy template usage, intricate callback patterns, or implicit preconditions produced more failures.
 
@@ -95,7 +95,7 @@ yaml-cpp fell in the middle range. Its parsing APIs are reasonably well document
 
 **How do generated drivers compare to manually written ones in bug finding capability?**
 
-We did not run extended fuzzing campaigns due to time constraints, so our evidence on this question is limited. The coverage data suggests that LLM generated drivers explore a reasonable subset of code paths. Whether they find the same bugs as expert drivers remains an open question.
+We did not run extended fuzzing campaigns due to time constraints, so our evidence on this question is limited. The coverage data suggests that LLM-generated drivers explore a reasonable subset of code paths. Whether they find the same bugs as expert drivers remains an open question.
 
 Anecdotally, during our experiments, one generated driver did trigger an assertion failure in yaml-cpp that we had not previously known about. This was a minor issue rather than a security vulnerability, but it demonstrates that automated drivers can find real problems.
 
@@ -108,7 +108,7 @@ We categorized failures into several types:
 3. Missing includes or dependencies: approximately 20% of failures
 4. Runtime crashes from invalid API usage: approximately 15% of failures
 
-The structural errors were often recoverable through prompt refinement. Adding explicit examples of correct fuzz driver structure to the prompt reduced these failures significantly in follow up experiments.
+The structural errors were often recoverable through prompt refinement. Adding explicit examples of correct fuzz driver structure to the prompt reduced these failures significantly in follow-up experiments.
 
 ## 6.3 Limitations and Constraints
 
@@ -116,7 +116,7 @@ The structural errors were often recoverable through prompt refinement. Adding e
 
 Our work has several technical limitations that affect how the results should be interpreted.
 
-**Model selection scope.** We evaluated 14 open source LLMs, but this represents a small fraction of available models. New models appear monthly. Some models we did not test might perform better or worse than our selections. We chose models based on availability, documentation, and community adoption rather than exhaustive search.
+**Model selection scope.** We evaluated 14 open-source LLMs, but this represents a small fraction of available models. New models appear monthly. Some models we did not test might perform better or worse than our selections. We chose models based on availability, documentation, and community adoption rather than exhaustive search.
 
 **Single target language.** All experiments focused on C++ libraries. Results might differ for other languages. C has similar challenges, but Python or Rust might show different patterns due to different memory safety characteristics and training data distribution.
 
@@ -124,13 +124,13 @@ Our work has several technical limitations that affect how the results should be
 
 **Hardware constraints.** Our local experiments used a single workstation with limited GPU memory. This prevented running the largest models at full precision. Quantization may have affected performance for some models, though we attempted to use recommended settings.
 
-**Time constraints on fuzzing runs.** Each driver was executed for a limited time during evaluation. Longer fuzzing campaigns might reveal different coverage patterns as the fuzzer explores more deeply. Our snapshot measurements capture initial effectiveness but not long term behavior.
+**Time constraints on fuzzing runs.** Each driver was executed for a limited time during evaluation. Longer fuzzing campaigns might reveal different coverage patterns as the fuzzer explores more deeply. Our snapshot measurements capture initial effectiveness but not long-term behavior.
 
 ### 6.3.2 Methodological Boundaries
 
 Beyond technical limitations, our methodology has boundaries that constrain generalization.
 
-**Single organization context.** The enterprise integration work happened at CARIAD. Their network architecture, security policies, and tooling differ from other organizations. The specific solutions we developed (Azure Private Link, self hosted runners) may not transfer directly to other environments.
+**Single organization context.** The enterprise integration work happened at CARIAD. Their network architecture, security policies, and tooling differ from other organizations. The specific solutions we developed (Azure Private Link, self-hosted runners) may not transfer directly to other environments.
 
 **Limited manual driver comparison.** We compared against OSS-Fuzz drivers where available, but did not commission expert written drivers specifically for comparison. The human baseline is somewhat indirect.
 
@@ -144,7 +144,7 @@ These limitations do not invalidate our findings, but they define the scope with
 
 ### 6.4.1 Automotive Industry Impact
 
-The automotive industry faces a particular combination of pressures that makes LLM assisted fuzzing attractive.
+The automotive industry faces a particular combination of pressures that makes LLM-assisted fuzzing attractive.
 
 Regulatory requirements are tightening. UNECE Regulation 155 mandates cybersecurity management systems. ISO/SAE 21434 requires systematic security engineering throughout the vehicle lifecycle. Manufacturers must demonstrate that they have addressed security risks. Fuzzing provides evidence of security testing that regulators recognize.
 
@@ -152,13 +152,13 @@ Software complexity continues to grow. Modern vehicles contain millions of lines
 
 Skilled security engineers are scarce. The automotive industry competes with technology companies for talent. Salaries in Silicon Valley exceed what traditional automakers can offer. Tools that multiply the effectiveness of available engineers provide competitive advantage.
 
-LLM assisted fuzzing addresses all three pressures. It provides documented security testing for compliance. It scales to large codebases. It reduces demands on specialized personnel.
+LLM-assisted fuzzing addresses all three pressures. It provides documented security testing for compliance. It scales to large codebases. It reduces demands on specialized personnel.
 
 The specific numbers from our cost analysis reinforce this argument. At 1,500 euros per year for enterprise deployment, the tool costs less than a single day of consultant time. Even modest improvements in security testing efficiency produce positive return on investment.
 
-Adoption barriers remain. Automotive organizations have conservative cultures regarding new tools in safety adjacent processes. Validation requirements for tools used in ISO 26262 contexts create additional overhead. The path from research prototype to certified production tool involves significant effort.
+Adoption barriers remain. Automotive organizations have conservative cultures regarding new tools in safety-adjacent processes. Validation requirements for tools used in ISO 26262 contexts create additional overhead. The path from research prototype to certified production tool involves significant effort.
 
-We recommend a phased approach. Start with non safety critical subsystems like infotainment or connectivity features. Build confidence and collect metrics. Gradually expand to more critical systems as the approach proves reliable.
+We recommend a phased approach. Start with non safety-critical subsystems like infotainment or connectivity features. Build confidence and collect metrics. Gradually expand to more critical systems as the approach proves reliable.
 
 ### 6.4.2 Enterprise CI/CD Challenges
 
@@ -176,46 +176,46 @@ We see several responses to this challenge:
 
 **Cloud provider private connectivity.** Services like Azure Private Link, AWS PrivateLink, and Google Cloud Private Service Connect create private paths to cloud services. These maintain security boundaries while enabling access. Configuration requires coordination between cloud and enterprise network teams.
 
-**Edge deployment.** For latency sensitive applications, running models on local hardware avoids network dependencies entirely. This suits scenarios where model updates are infrequent and inference needs are predictable.
+**Edge deployment.** For latency-sensitive applications, running models on local hardware avoids network dependencies entirely. This suits scenarios where model updates are infrequent and inference needs are predictable.
 
 **Hybrid approaches.** Some organizations use private deployment for sensitive operations and cloud APIs for less sensitive ones. Managing multiple deployment modes adds complexity but provides flexibility.
 
 Our Azure Private Link solution represents one point in this design space. It preserved CARIAD's security model while enabling cloud AI access. Other organizations will make different tradeoffs based on their specific constraints.
 
 **[Suggested Diagram: Enterprise AI Deployment Options]**
-*A comparison diagram showing different deployment models (fully cloud, private link, self hosted, edge) with their tradeoffs in terms of security, cost, scalability, and operational complexity would be valuable here.*
+*A comparison diagram showing different deployment models (fully cloud, private link, self-hosted, edge) with their tradeoffs in terms of security, cost, scalability, and operational complexity would be valuable here.*
 
 ## 6.5 Future Research Directions
 
 Our work opens several directions for future research.
 
-**Extended fuzzing campaigns.** We measured initial code coverage but did not run campaigns long enough to measure vulnerability discovery. Future work should execute fuzzing for hours or days, tracking crash discovery over time. This would establish whether LLM generated drivers find bugs at rates comparable to manual drivers.
+**Extended fuzzing campaigns.** We measured initial code coverage but did not run campaigns long enough to measure vulnerability discovery. Future work should execute fuzzing for hours or days, tracking crash discovery over time. This would establish whether LLM-generated drivers find bugs at rates comparable to manual drivers.
 
-**Multi model ensembles.** Our experiments evaluated models individually. Combining outputs from multiple models might improve quality. One model could generate initial code while another reviews and corrects it. The optimal combination strategy remains unexplored.
+**Multi-model ensembles.** Our experiments evaluated models individually. Combining outputs from multiple models might improve quality. One model could generate initial code while another reviews and corrects it. The optimal combination strategy remains unexplored.
 
-**Active learning for driver improvement.** When a generated driver fails to compile or crashes at runtime, the error messages contain useful information. Future systems could feed this information back to the LLM for iterative improvement. This closed loop approach might achieve higher success rates than single shot generation.
+**Active learning for driver improvement.** When a generated driver fails to compile or crashes at runtime, the error messages contain useful information. Future systems could feed this information back to the LLM for iterative improvement. This closed-loop approach might achieve higher success rates than single-shot generation.
 
-**Cross language generalization.** We focused on C++ libraries. Extending to other languages relevant for automotive (C, Rust, Python) would broaden applicability. Different languages likely require different prompt strategies and model selections.
+**Cross-language generalization.** We focused on C++ libraries. Extending to other languages relevant for automotive (C, Rust, Python) would broaden applicability. Different languages likely require different prompt strategies and model selections.
 
-**Integration with other testing techniques.** LLM generated fuzz drivers could complement symbolic execution, property based testing, or formal verification. Understanding how to combine these approaches effectively deserves investigation.
+**Integration with other testing techniques.** LLM-generated fuzz drivers could complement symbolic execution, property-based testing, or formal verification. Understanding how to combine these approaches effectively deserves investigation.
 
-**Human in the loop workflows.** Rather than fully automated generation, interactive systems could present generated drivers to developers for review and modification. Understanding the optimal balance between automation and human oversight would improve practical deployment.
+**Human-in-the-loop workflows.** Rather than fully automated generation, interactive systems could present generated drivers to developers for review and modification. Understanding the optimal balance between automation and human oversight would improve practical deployment.
 
-**Benchmark development.** The field lacks standardized benchmarks for evaluating LLM based fuzz driver generation. Creating benchmark suites with known ground truth would enable more rigorous comparison across approaches.
+**Benchmark development.** The field lacks standardized benchmarks for evaluating LLM-based fuzz driver generation. Creating benchmark suites with known ground truth would enable more rigorous comparison across approaches.
 
-**Fine tuning data curation.** Our LoRA experiments used OSS-Fuzz drivers as training data. Systematic study of what makes good fine tuning examples, and how much data is needed, would guide practical deployment.
+**Fine-tuning data curation.** Our LoRA experiments used OSS-Fuzz drivers as training data. Systematic study of what makes good fine-tuning examples, and how much data is needed, would guide practical deployment.
 
-**Security analysis of generated code.** LLM generated code could contain vulnerabilities or backdoors. Analyzing the security properties of generated drivers, beyond just their fuzzing effectiveness, matters for deployment in security sensitive contexts.
+**Security analysis of generated code.** LLM-generated code could contain vulnerabilities or backdoors. Analyzing the security properties of generated drivers, beyond just their fuzzing effectiveness, matters for deployment in security-sensitive contexts.
 
 ## 6.6 Summary of Findings and Contributions
 
-This thesis makes several contributions to the understanding of LLM assisted security testing in automotive contexts.
+This thesis makes several contributions to the understanding of LLM-assisted security testing in automotive contexts.
 
-**Empirical evaluation of model capabilities.** We systematically evaluated 14 LLMs for fuzz driver generation, establishing that specialized code models outperform larger general purpose models for this task. This finding challenges common assumptions about model scaling.
+**Empirical evaluation of model capabilities.** We systematically evaluated 14 LLMs for fuzz driver generation, establishing that specialized code models outperform larger general-purpose models for this task. This finding challenges common assumptions about model scaling.
 
-**Demonstration of fine tuning effectiveness.** Our LoRA experiments showed that small models adapted to the fuzzing domain can match larger models at reduced cost. This provides a practical path for resource constrained deployments.
+**Demonstration of fine-tuning effectiveness.** Our LoRA experiments showed that small models adapted to the fuzzing domain can match larger models at reduced cost. This provides a practical path for resource-constrained deployments.
 
-**Enterprise integration architecture.** We documented a complete architecture for integrating LLM assisted fuzzing into secure enterprise CI/CD pipelines, including the Azure Private Link solution for network isolation challenges.
+**Enterprise integration architecture.** We documented a complete architecture for integrating LLM-assisted fuzzing into secure enterprise CI/CD pipelines, including the Azure Private Link solution for network isolation challenges.
 
 **Cost analysis framework.** Our economic analysis in Chapter 5 Section 5.4 provides a template for organizations evaluating similar deployments. The finding that enterprise deployment costs approximately 1,500 euros annually (primarily API token costs for moderate usage patterns) establishes that cost is not a barrier.
 
@@ -223,36 +223,212 @@ This thesis makes several contributions to the understanding of LLM assisted sec
 
 **Open documentation of failures.** We reported not just successes but also which models failed and why. This negative evidence helps others avoid unproductive approaches.
 
-The practical impact extends beyond academic contribution. CARIAD can deploy the system we developed. Other automotive organizations can adapt our architecture to their environments. The specific numbers and experiences we report provide guidance for real world adoption.
+The practical impact extends beyond academic contribution. CARIAD can deploy the system we developed. Other automotive organizations can adapt our architecture to their environments. The specific numbers and experiences we report provide guidance for real-world adoption.
 
 ## 6.7 Conclusion
 
 We began this work with a straightforward question: can Large Language Models automate fuzz driver generation for automotive software? After six months of research, implementation, and deployment effort at CARIAD, the answer is a qualified yes.
 
-The qualification matters. Not all models work. General purpose models, even large ones, frequently failed at this task. Specialized code models like Qwen 2.5-Coder succeeded where others did not. Model selection is not an afterthought but a critical design decision.
+The qualification matters. Not all models work. General-purpose models, even large ones, frequently failed at this task. Specialized code models like Qwen 2.5-Coder succeeded where others did not. Model selection is not an afterthought but a critical design decision.
 
-Fine tuning small models proved surprisingly effective. Our LoRA adapted 1.5B model matched larger alternatives while consuming far fewer resources. For organizations with compute constraints or cost sensitivity, this approach deserves consideration.
+Fine-tuning small models proved surprisingly effective. Our LoRA adapted 1.5B model matched larger alternatives while consuming far fewer resources. For organizations with compute constraints or cost sensitivity, this approach deserves consideration.
 
 The biggest surprise was infrastructure. We expected the hard problem to be generating good code. The actual bottleneck was deploying our solution within corporate network policies. Three weeks of failed workarounds followed by a month waiting for Private Link provisioning taught us that enterprise AI deployment requires infrastructure planning alongside model development.
 
-The economics strongly favor adoption. At roughly 1,500 euros annually, LLM assisted fuzzing costs less than trivial line items in automotive development budgets. The value comes from scaling security testing to match code production rates that manual approaches cannot achieve.
+The economics strongly favor adoption. At roughly 1,500 euros annually, LLM-assisted fuzzing costs less than trivial line items in automotive development budgets. The value comes from scaling security testing to match code production rates that manual approaches cannot achieve.
 
-Looking forward, we see LLM assisted security testing becoming standard practice in automotive software development. The technology works well enough today for practical deployment. It will improve as models advance and deployment patterns mature. Organizations that develop expertise now will be better positioned as the technology evolves.
+Looking forward, we see LLM-assisted security testing becoming standard practice in automotive software development. The technology works well enough today for practical deployment. It will improve as models advance and deployment patterns mature. Organizations that develop expertise now will be better positioned as the technology evolves.
 
 For CARIAD specifically, this work establishes a foundation for expanded deployment. The architecture we built can accommodate additional target libraries. The cost model supports scaling. The infrastructure patterns can replicate across teams.
 
-The broader lesson extends beyond fuzzing. Automotive software development faces a fundamental scaling problem. Code complexity grows faster than team sizes. AI assisted tools offer a path to maintain quality at scale. Fuzz driver generation is one application of this principle. Others will follow.
+The broader lesson extends beyond fuzzing. Automotive software development faces a fundamental scaling problem. Code complexity grows faster than team sizes. AI-assisted tools offer a path to maintain quality at scale. Fuzz driver generation is one application of this principle. Others will follow.
 
 We hope this work provides useful guidance for researchers and practitioners working on similar problems. The combination of empirical evaluation, practical deployment experience, and honest reporting of challenges should help others navigate this emerging space.
 
 ---
 
-**Diagrams Recommended for Chapter 6:**
+## Mermaid Diagram Code for Chapter 6 Figures
 
-1. **Figure 6.1: Model Performance Comparison Chart** - A bar chart comparing code coverage achieved by different models (Qwen 2.5-Coder vs Mixtral vs CodeLlama vs LoRA fine-tuned model) to visualize the finding that specialized models outperform larger general models.
+### Figure 6.1: Model Performance Comparison
 
-2. **Figure 6.2: Enterprise Network Architecture** - A network diagram showing the flow from CI/CD runners through Azure Private Link to cloud LLM services, illustrating the solution to the network isolation challenge described in Section 6.1.2.
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4472C4'}}}%%
+xychart-beta
+    title "Code Coverage by Model"
+    x-axis ["Qwen 2.5-Coder (32B)", "LoRA Fine-tuned (1.5B)", "CodeLlama (34B)", "Mixtral (46.7B)"]
+    y-axis "Line Coverage (%)" 0 --> 50
+    bar [45, 43, 0, 0]
+```
 
-3. **Figure 6.3: AI Deployment Options Comparison** - A table or matrix comparing different enterprise AI deployment approaches (cloud API, private link, self-hosted, edge) across dimensions of security, cost, latency, and operational complexity, as referenced in Section 6.4.2.
+### Figure 6.2: Enterprise Network Architecture
 
-4. **Figure 6.4: Research Questions Summary** - A visual summary showing each research question mapped to its answer and supporting evidence, providing a quick reference for readers.
+```mermaid
+flowchart LR
+    subgraph Corporate["Corporate Network (CARIAD)"]
+        direction TB
+        GH[GitHub Actions<br>Self-hosted Runner]
+        Code[Source Code<br>Repository]
+    end
+    
+    subgraph Azure["Azure Cloud"]
+        direction TB
+        PL[Azure Private Link<br>Endpoint]
+        LLM[Azure OpenAI<br>LLM Service]
+    end
+    
+    subgraph Security["Security Boundary"]
+        FW[Corporate<br>Firewall]
+    end
+    
+    Code --> GH
+    GH --> FW
+    FW -.->|Blocked| Internet((Public<br>Internet))
+    FW -->|Private Connection| PL
+    PL --> LLM
+    LLM -->|Generated<br>Fuzz Driver| PL
+    PL --> FW
+    FW --> GH
+    
+    style Internet fill:#ffcccc
+    style PL fill:#90EE90
+    style Corporate fill:#E6F3FF
+    style Azure fill:#FFF3E6
+```
+
+### Figure 6.3: AI Deployment Options Comparison
+
+```mermaid
+quadrantChart
+    title AI Deployment Options Trade-offs
+    x-axis Low Cost --> High Cost
+    y-axis Low Security --> High Security
+    quadrant-1 High Security, High Cost
+    quadrant-2 High Security, Low Cost
+    quadrant-3 Low Security, Low Cost
+    quadrant-4 Low Security, High Cost
+    
+    Self-hosted Models: [0.75, 0.85]
+    Azure Private Link: [0.55, 0.80]
+    Edge Deployment: [0.65, 0.70]
+    Cloud API Direct: [0.35, 0.25]
+```
+
+Alternative table format for Figure 6.3:
+
+```mermaid
+flowchart TB
+    subgraph Comparison["AI Deployment Options Comparison"]
+        direction TB
+        
+        subgraph Headers[" "]
+            H1[Option]
+            H2[Security]
+            H3[Cost]
+            H4[Scalability]
+            H5[Complexity]
+        end
+        
+        subgraph Row1["Cloud API (Direct)"]
+            R1C1[Cloud API]
+            R1C2[Low]
+            R1C3[Low]
+            R1C4[High]
+            R1C5[Low]
+        end
+        
+        subgraph Row2["Private Link"]
+            R2C1[Private Link]
+            R2C2[High]
+            R2C3[Medium]
+            R2C4[High]
+            R2C5[Medium]
+        end
+        
+        subgraph Row3["Self-hosted"]
+            R3C1[Self-hosted]
+            R3C2[High]
+            R3C3[High]
+            R3C4[Low]
+            R3C5[High]
+        end
+        
+        subgraph Row4["Edge"]
+            R4C1[Edge]
+            R4C2[High]
+            R4C3[Medium]
+            R4C4[Low]
+            R4C5[Medium]
+        end
+    end
+    
+    style R1C2 fill:#ffcccc
+    style R2C2 fill:#90EE90
+    style R3C2 fill:#90EE90
+    style R4C2 fill:#90EE90
+```
+
+### Figure 6.4: Research Questions Summary
+
+```mermaid
+flowchart TB
+    subgraph RQ1["RQ1: Effectiveness"]
+        Q1[Can LLMs generate<br>fuzz drivers?]
+        A1[Yes, with qualifications]
+        E1[87% compilation<br>45% coverage]
+        Q1 --> A1 --> E1
+    end
+    
+    subgraph RQ2["RQ2: Optimization"]
+        Q2[Does model size<br>determine quality?]
+        A2[No, domain-specific<br>training matters more]
+        E2[32B Qwen > 46.7B Mixtral<br>1.5B LoRA competitive]
+        Q2 --> A2 --> E2
+    end
+    
+    subgraph RQ3["RQ3: Feasibility"]
+        Q3[Can it integrate into<br>enterprise CI/CD?]
+        A3[Yes, with significant<br>infrastructure effort]
+        E3[Azure Private Link<br>Self-hosted runners<br>~1,500€/year]
+        Q3 --> A3 --> E3
+    end
+    
+    RQ1 --- RQ2 --- RQ3
+    
+    style A1 fill:#90EE90
+    style A2 fill:#90EE90
+    style A3 fill:#FFFFCC
+```
+
+### Additional Figure: LLM Fuzz Driver Generation Workflow
+
+```mermaid
+flowchart LR
+    subgraph Input["Input Layer"]
+        SC[Source Code<br>Headers]
+        API[API<br>Documentation]
+    end
+    
+    subgraph Generation["Generation Layer"]
+        PE[Prompt<br>Engineering]
+        LLM[LLM Model<br>Qwen 2.5-Coder]
+    end
+    
+    subgraph Execution["Execution Layer"]
+        COMP[Compilation<br>Check]
+        SAN[Sanitizer<br>ASan/UBSan]
+        FUZZ[libFuzzer<br>Execution]
+        COV[Coverage<br>Measurement]
+    end
+    
+    SC --> PE
+    API --> PE
+    PE --> LLM
+    LLM --> COMP
+    COMP -->|Success| SAN
+    COMP -->|Fail| PE
+    SAN --> FUZZ
+    FUZZ --> COV
+    
+    style COMP fill:#FFFFCC
+    style COV fill:#90EE90
+```
