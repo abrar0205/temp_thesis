@@ -59,7 +59,7 @@ The pattern was clear. Code-specialized models like Qwen Coder outperformed larg
 
 Based on Phase 1 results, we selected the 1.5B model and applied Low-Rank Adaptation (LoRA) fine-tuning using high-quality fuzz drivers from Google's OSS-Fuzz project.
 
-We curated two training datasets: a small dataset with 172 examples and an extended dataset with 709 examples. The fine-tuning configuration used:
+We curated two training datasets: a small dataset with 172 examples and an extended dataset with 709 examples. Each example consisted of a fuzz driver paired with its target API context, focused on security vulnerability patterns, fuzzing techniques, and automotive-specific code patterns. The fine-tuning configuration used:
 - LoRA Rank: 16
 - LoRA Alpha: 32
 - Dropout: 0.1
