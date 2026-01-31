@@ -37,9 +37,9 @@ The "Successful Tests" column requires explanation: this metric counts tests tha
 
 Gemma 3 27B achieved the highest code coverage at 45.06%, slightly outperforming the larger Qwen 2.5-Coder 32B which reached 43.08%. This was unexpected—the smaller model outperformed the larger one while using fewer tokens. We initially suspected measurement error, but the results held across multiple runs.
 
-That said, these numbers need context. 45% coverage sounds reasonable until you realize that manually-written fuzz drivers in OSS-Fuzz projects typically achieve 60-80% for similar libraries. Our best AI-generated driver still fell short of expert human work. The value isn't in surpassing humans—it's in automating what would otherwise require substantial manual effort.
+That said, these numbers need context. 45% coverage sounds reasonable until you realize that manually-written fuzz drivers in OSS-Fuzz projects typically achieve 60-80% for similar libraries. Our best AI-generated driver still fell short of expert human work. The value is not in surpassing humans—it is in automating what would otherwise require substantial manual effort.
 
-Phi 14B showed lower coverage at 34.26% despite generating more unique test cases (2,220 vs 2,050). It required significantly more tokens—71.5k compared to Gemma's 40.2k—making it far less efficient for production use. More test cases don't necessarily mean better coverage.
+Phi 14B showed lower coverage at 34.26% despite generating more unique test cases (2,220 vs 2,050). It required significantly more tokens—71.5k compared to Gemma's 40.2k—making it far less efficient for production use. More test cases do not necessarily mean better coverage.
 
 
 ### 5.2.2 Unsuccessful Models: Critical Findings
@@ -49,12 +49,12 @@ Several models failed completely. This was the biggest surprise of the research.
 | Model | Failure Reason | Lessons Learned |
 |-------|----------------|-----------------|
 | Yi 34B | Generation hallucinations, 0% coverage | General-purpose models inadequate for code tasks |
-| DeepSeek R1 | Poor fuzzing context understanding | Reasoning models don't translate to code generation |
+| DeepSeek R1 | Poor fuzzing context understanding | Reasoning models do not translate to code generation |
 | Mixtral 46.7B | Resource constraints due to size | Hardware limitations require model size consideration |
 
-Yi 34B demonstrated a fundamental limitation of general-purpose models for specialized code tasks. Despite having 34 billion parameters, it produced hallucinated outputs that achieved zero percent coverage. The generated drivers compiled successfully in some cases—they weren't syntactically broken—but they did nothing useful. Functions were called with nonsensical parameter combinations, or the driver simply returned immediately without exercising any library functionality. We spent considerable time verifying this wasn't a prompt engineering problem. It wasn't.
+Yi 34B demonstrated a fundamental limitation of general-purpose models for specialized code tasks. Despite having 34 billion parameters, it produced hallucinated outputs that achieved zero percent coverage. The generated drivers compiled successfully in some cases—they were not syntactically broken—but they did nothing useful. Functions were called with nonsensical parameter combinations, or the driver simply returned immediately without exercising any library functionality. We spent considerable time verifying this was not a prompt engineering problem. It was not.
 
-DeepSeek R1 was designed for reasoning tasks. That capability didn't translate to code generation at all. Mixtral's 46.7 billion parameters simply exceeded available hardware resources—we couldn't even complete a full evaluation run.
+DeepSeek R1 was designed for reasoning tasks. That capability did not translate to code generation at all. Mixtral's 46.7 billion parameters simply exceeded available hardware resources—we could not even complete a full evaluation run.
 
 A clear pattern emerged: code-specialized models outperformed larger general-purpose models by substantial margins. Size alone does not determine quality for specialized tasks like fuzz driver generation.
 
@@ -89,14 +89,14 @@ With 709 examples, the extended dataset achieved the best results: 33% faster ge
 
 Training data quality and quantity both matter, though quality appears more important. The 709-example dataset outperformed the 172-example dataset, but the improvement was incremental rather than dramatic. More diverse examples help the model generalize, but there are diminishing returns.
 
-One key insight: a fine-tuned small model can match larger models while using far fewer computational resources. This makes enterprise deployment practical—you don't need expensive GPU infrastructure to run effective fuzz driver generation.
+One key insight: a fine-tuned small model can match larger models while using far fewer computational resources. This makes enterprise deployment practical—you do not need expensive GPU infrastructure to run effective fuzz driver generation.
 
-However, we should be honest about limitations. The fine-tuned 1.5B model still doesn't match the coverage achieved by the larger Qwen 32B or Gemma 27B models. What it offers is efficiency: acceptable coverage at much lower cost and resource requirements.
+However, we should be honest about limitations. The fine-tuned 1.5B model still does not match the coverage achieved by the larger Qwen 32B or Gemma 27B models. What it offers is efficiency: acceptable coverage at much lower cost and resource requirements.
 
 
 ## 5.4 Economic Analysis and Resource Metrics
 
-We analyzed costs in detail because the ultimate question isn't just "does this work?" but "is this economically viable for real deployment?"
+We analyzed costs in detail because the ultimate question is not just "does this work?" but "is this economically viable for real deployment?"
 
 ### 5.4.1 Azure OpenAI Cost Projections
 
@@ -124,7 +124,7 @@ The AI-driven approach offers:
 - Time savings: estimated 90% reduction
 - ROI: 2000-5000% cost reduction potential
 
-The economic advantage appears substantial—but there's an important caveat. The LLM doesn't understand automotive safety requirements, can't reason about ISO 26262 compliance, and occasionally generates syntactically correct but semantically meaningless tests. Human oversight remains essential. The 90% time savings assumes engineers spend their time reviewing and improving AI-generated drivers rather than writing from scratch, not that AI fully replaces human judgment.
+The economic advantage appears substantial—but there is an important caveat. The LLM does not understand automotive safety requirements, cannot reason about ISO 26262 compliance, and occasionally generates syntactically correct but semantically meaningless tests. Human oversight remains essential. The 90% time savings assumes engineers spend their time reviewing and improving AI-generated drivers rather than writing from scratch, not that AI fully replaces human judgment.
 
 
 ## 5.5 Summary
@@ -133,7 +133,7 @@ The experiments produced several clear findings, along with some important cavea
 
 First, model specialization matters more than size. Gemma 3 27B outperformed Yi 34B despite having fewer parameters. Code-specialized models beat larger general-purpose models consistently across our tests.
 
-Second, fine-tuning enables efficient deployment. The fine-tuned 1.5B model achieved 33% faster generation and 55% fewer tokens compared to the base model, though it still didn't match the coverage of larger specialized models.
+Second, fine-tuning enables efficient deployment. The fine-tuned 1.5B model achieved 33% faster generation and 55% fewer tokens compared to the base model, though it still did not match the coverage of larger specialized models.
 
 Third, the economics are favorable—at least on paper. Annual costs range from €74 for light usage to €1,452 for full enterprise deployment, compared to €50,000+ for manual approaches. But this comparison assumes appropriate human oversight, which has its own costs.
 
@@ -143,7 +143,7 @@ These findings directly address our research questions:
 
 **RQ2 (Optimization)**: Does model size determine fuzz driver quality, or can smaller models with domain-specific training match or exceed larger general-purpose models? Smaller specialized models consistently outperformed larger general-purpose models. Fine-tuning further improved efficiency, though not coverage.
 
-**RQ3 (Feasibility)**: Can LLM-assisted fuzz driver generation be integrated into secure enterprise CI/CD pipelines while meeting performance, cost, and security requirements? Yes, at costs under €1,500 annually—but integration required significant infrastructure work (Azure Private Link) that isn't trivial to set up in regulated environments.
+**RQ3 (Feasibility)**: Can LLM-assisted fuzz driver generation be integrated into secure enterprise CI/CD pipelines while meeting performance, cost, and security requirements? Yes, at costs under €1,500 annually—but integration required significant infrastructure work (Azure Private Link) that is not trivial to set up in regulated environments.
 
 
 ---
