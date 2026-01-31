@@ -33,6 +33,8 @@ We evaluated models across different size categories on the yaml-cpp repository.
 | Gemma 3 27B | 45.06% | 33m 33s | 40.2k | 2,050 | 2 |
 | Phi 14B | 34.26% | 36m 36s | 71.5k | 2,220 | 1 |
 
+The "Successful Tests" column requires explanation: this metric counts tests that discovered actual bugs or edge cases, not tests that simply compiled and ran. Most generated tests exercised valid code paths without finding vulnerabilities—which is expected behavior, not failure. The high number of unique test cases with few "successful" findings reflects that fuzzing is a numbers game: you generate many tests hoping a few will discover issues.
+
 Gemma 3 27B achieved the highest code coverage at 45.06%, slightly outperforming the larger Qwen 2.5-Coder 32B which reached 43.08%. This was unexpected—the smaller model outperformed the larger one while using fewer tokens. We initially suspected measurement error, but the results held across multiple runs.
 
 That said, these numbers need context. 45% coverage sounds reasonable until you realize that manually-written fuzz drivers in OSS-Fuzz projects typically achieve 60-80% for similar libraries. Our best AI-generated driver still fell short of expert human work. The value isn't in surpassing humans—it's in automating what would otherwise require substantial manual effort.
@@ -137,7 +139,7 @@ Third, the economics are favorable—at least on paper. Annual costs range from 
 
 These findings directly address our research questions:
 
-**RQ1 (Effectiveness)**: Can Large Language Models generate fuzz drivers for C++ code that compile successfully, execute without errors, and achieve meaningful code coverage? Yes—our best models achieved over 40% coverage on yaml-cpp, with drivers that compiled and executed correctly. However, this falls short of expert human-written drivers (60-80% coverage).
+**RQ1 (Effectiveness)**: Can Large Language Models generate fuzz drivers for C++ code that compile successfully, execute without errors, and achieve meaningful code coverage? Yes—our best models achieved over 40% coverage on yaml-cpp, with drivers that compiled and executed correctly. We consider 40%+ coverage "meaningful" because it represents automated baseline coverage that would otherwise require 2-8 hours of manual engineering per target. While this falls short of expert human-written drivers (60-80% coverage), the value lies in automation at scale, not matching human experts.
 
 **RQ2 (Optimization)**: Does model size determine fuzz driver quality, or can smaller models with domain-specific training match or exceed larger general-purpose models? Smaller specialized models consistently outperformed larger general-purpose models. Fine-tuning further improved efficiency, though not coverage.
 
